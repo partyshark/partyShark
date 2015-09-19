@@ -99,6 +99,23 @@ router.post('/vote', function(req, res, next) {
 });
 
 router.post('/suggest', function(req, res, next) {
+    if(!req.party) {
+        res.status(400).send('Party does not exist');
+        return;
+    }
+
+    var suggestionId = req.query.suggestion;
+    var suggestion = suggestionId; //In some async function
+
+    for(var i = req.party.activePlay; i < req.party.plays; i++) {
+        var p = req.party.plays[i];
+        if(p.globalId == suggestionId) { 
+            res.status(200).json({accepted: false, reson: 'This song is waiting in the queue'});
+            return;
+        }
+    }
+
+    var play = new data.Play();
 
 });
 

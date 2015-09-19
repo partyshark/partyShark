@@ -31,7 +31,7 @@ exports.Party = function(voterCode, adminCode) {
     this.clients = [];
     this.plays = [];
 
-    this.activePlay;
+    this.activePlay = -1;
 };
 exports.Party.prototype = { 
     getPlay: function(instanceId) {

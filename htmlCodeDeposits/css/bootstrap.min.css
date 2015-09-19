@@ -3452,14 +3452,14 @@ textarea.form-group-lg .form-control,select[multiple].form-group-lg .form-contro
 }
 .btn-default
 {
-	background-color: #95a5a6;
-	border-color: #95a5a6;
+	background-color: #69D2E7;
+	border-color: #69D2E7;
 	color: #ffffff;
 }
 .btn-default:hover,.btn-default:focus,.btn-default.focus,.btn-default:active,.btn-default.active,.open>.dropdown-toggle.btn-default
 {
-	background-color: #798d8f;
-	border-color: #74898a;
+	background-color: #a7dbdb;
+	border-color: #a7dbdb;
 	color: #ffffff;
 }
 .btn-default:active,.btn-default.active,.open>.dropdown-toggle.btn-default
