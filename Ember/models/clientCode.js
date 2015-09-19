@@ -1,3 +1,4 @@
-PartyShark.ClientCode = DS.Model.extend({
-    clientCode: DS.attr('string')
+PartyShark.CodePack = DS.Model.extend({
+    clientCode: DS.attr('string'),
+    partyCode: DS.attr('string')
 });

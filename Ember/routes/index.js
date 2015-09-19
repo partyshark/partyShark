@@ -1,5 +1,5 @@
 PartyShark.IndexRoute = Ember.Route.extend({
    model: function() {
-      return this.store.find('clientCode');
+      return this.store.find('codePack');
   }
 });
