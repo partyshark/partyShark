@@ -24,25 +24,8 @@ exports.Model.prototype = {
     isClientCodeUsed: function(code) { return this.getClient(code) != null; },
 };
 
-exports.Party = function(voterCode, adminCode) {
-    this.voterCode = voterCode;
-    this.adminCode = adminCode;
-
-    this.clients = [];
-    this.plays = [];
-
-    this.activePlay;
-};
-exports.Party.prototype = { 
-    getPlay: function(instanceId) {
-        for(var i = 0; i < this.songs; i++) {
-            if(this.songs[i].instanceId == instanceId) { return this.songs; }
-        }
-        return null;
-    }
-};
-
 exports.Play = function() {
+    this.title;
     this.artist;
     this.length;
     this.position;
@@ -53,6 +36,35 @@ exports.Play = function() {
     this.vetoed = false;
     this.feedback = 0;
 };
+
+exports.Party = function(voterCode, adminCode) {
+    this.voterCode = voterCode;
+    this.adminCode = adminCode;
+
+    this.clients = [];
+    this.plays = [];
+
+    this.activePlay = -1;
+};
+exports.Party.prototype = { 
+    getPlay: function(instanceId) {
+        for(var i = 0; i < this.songs; i++) {
+            if(this.songs[i].instanceId == instanceId) { return this.songs; }
+        }
+        return null;
+    },
+
+    addPlay: function(globalId) {
+        var p = new exports.Play();
+        p.globalId = globalId;
+        p.id = this.plays.length;
+        p.position = p.id;
+        this.plays.push(p);
+        return p;
+    }
+};
+
+
 
 exports.Client = function(code) {
     this.code = code;

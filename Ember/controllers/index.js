@@ -1,7 +1,9 @@
 PartyShark.IndexController = Ember.ObjectController.extend({
 	init: function() {
-		$.get( '/clientCode', function( data ) {
-  			alert(data);
+		$.get( "/clientCode", function( data ) {
+  			//Need to save the client code
+  			data.save();
+  			alert(this.store.find('clientCode'));
 		});
 	},
     actions: {

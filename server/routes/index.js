@@ -2,14 +2,18 @@ var express = require('express');
 var router = express.Router();
 var data = require('../data.js');
 var gen = require('../generate.js');
-
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+var request = require('request');
 
 router.get('/queueStatus', function(req, res, next) {
+    if(!req.party) {
+        res.status(400).send('Party does not exist');
+        return;
+    }
 
+    res.status(200).json({
+        activePlay: req.party.activePlay,
+        plays: req.party.plays
+    });
 });
 
 router.get('/clientCode', function(req, res, next) {
@@ -99,13 +103,52 @@ router.post('/vote', function(req, res, next) {
 });
 
 router.post('/suggest', function(req, res, next) {
+    if(!req.party) {
+        res.status(400).send('Party does not exist');
+        return;
+    }
 
+    var suggestionId = req.query.suggestion;
+    for(var i = req.party.activePlay; i < req.party.plays; i++) {
+        var p = req.party.plays[i];
+        if(p.globalId == suggestionId) { 
+            res.status(200).json({accepted: false, reson: 'This song is waiting in the queue'});
+            return;
+        }
+    }
+
+    request('http://api.deezer.com/search/track/' + req.query.q, function(error, response, body) {
+        if(error) {
+            res.status(200).json({accepted: false, reson: 'Deezer is unavailable'}); 
+            return;
+        }
+        else if(body.error) {
+            res.status(200).json({accepted: false, reson: 'Track does not exist'}); 
+            return;
+        }
+        
+        var p = req.party.addPlay(suggestionId);
+        p.title = body.title;
+        p.artist = body.artist.name;
+        p.duration = body.duration;
+        p.artUrl = body.album.cover_big;
+
+        res.status(200).json({accepted: true});
+    });
+    
 });
 
 router.post('/play', function(req, res, next) {
 });
 
 router.post('/veto', function(req, res, next) {
+});
+
+router.get('/search', function(req, res, next) {
+    request('http://api.deezer.com/search/track?q=' + req.query.q, function(error, response, body) {
+        if(error) { res.status(400).end(); }
+        else { res.status(response.statusCode).send(body); }
+    });
 });
 
 module.exports = router;
