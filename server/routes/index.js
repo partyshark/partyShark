@@ -16,7 +16,7 @@ router.get('/clientCode', function(req, res, next) {
     var clientCode;
     do {
         clientCode = gen.code(50);
-    } while (!req.model.isCodeUnique(voterCode))
+    } while (req.model.isClientCodeUsed(clientCode))
     req.model.clients = new data.Client(clientCode);
 
     res.status(200).json({clientCode: clientCode});
@@ -33,12 +33,12 @@ router.post('/create', function(req, res, next) {
         var voterCode;
         do {
             voterCode = gen.code(5);
-        } while (!req.model.parties.isPartyCodeUnique(voterCode)) 
+        } while (req.model.parties.isPartyCodeUsed(voterCode)) 
 
         var adminCode;
         do {
             adminCode = gen.code(5);
-        } while (!req.model.parties.isPartyCodeUnique(adminCode)) 
+        } while (req.model.parties.isPartyCodeUsed(adminCode)) 
 
         req.party = new data.Party(voterCode, adminCode);
         req.model.parties.push(req.party);

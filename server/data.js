@@ -22,7 +22,6 @@ exports.Model.prototype = {
     },
 
     isClientCodeUsed: function(code) { return this.getClient(code) != null; },
-
 };
 
 exports.Party = function(voterCode, adminCode) {
