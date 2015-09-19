@@ -36,4 +36,8 @@ $(document).ready(function() {
         $(this).hide();
         $('#pause').show();
     });
+    $('#pause').click(function(event) { 
+        $(this).hide();
+        $('#play').show();
+    });
 });
