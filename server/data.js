@@ -25,6 +25,7 @@ exports.Model.prototype = {
 };
 
 exports.Play = function() {
+    this.title;
     this.artist;
     this.length;
     this.position;
