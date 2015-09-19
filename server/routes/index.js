@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var data = require('../data.js');
 var gen = require('../generate.js');
+var request = require('request');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -123,6 +124,13 @@ router.post('/play', function(req, res, next) {
 });
 
 router.post('/veto', function(req, res, next) {
+});
+
+router.post('/search', function(req, res, next) {
+    request('http://api.deezer.com/search/track?q=' + req.query.q, function(error, response, body) {
+        if(error) { res.status(400).end(); }
+        else { res.status(response.statusCode).send(body); }
+    });
 });
 
 module.exports = router;
