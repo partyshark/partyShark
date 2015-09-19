@@ -1,6 +1,6 @@
 PartyShark.IndexController = Ember.ObjectController.extend({
 	init: function() {
-		$.get( "http://nreid26.xyz/clientCode", function( data ) {
+		$.get( '/clientCode', function( data ) {
   			alert(data);
 		});
 	},
