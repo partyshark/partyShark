@@ -116,8 +116,9 @@ router.post('/suggest', function(req, res, next) {
         }
     }
 
-    var play = new data.Play();
-
+    var play = req.party.addPlay(suggestionId);
+    //Add other data
+    res.status(200).json({accepted: true});
 });
 
 router.post('/play', function(req, res, next) {
