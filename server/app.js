@@ -6,8 +6,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var data = require('./data.js');
 
-var routes = require('./routes/index');
-
 var app = express();
 var model = new data.Model();
 
@@ -19,28 +17,23 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use('/', express.static(__dirname + '/../Ember')); //Serve static files as '/' from local + '/../Ember'
 
-//Attatch party to req
-app.use(function(req, res, next) {
+
+//Routing
+app.use('/', require('./routes/index.js'));
+
+app.use('/party/:partyCode', function(req, res, next) {
     req.model = model;
-    req.party = model.getParty(req.query.partyCode);
+    req.party = model.getParty(req.params.partyCode);
     req.client = model.getClient(req.query.clientCode);
-    next();
+
+    if(!req.party) { res.status(400).send('Party does not exist'); }
+    else if(!req.client) { res.status(400).send('Client does not exist'); }
+    else { next(); }
 });
+app.use('/party/:partyCode', require('./routes/party.js'));
 
-app.use('/', routes);
-
-// catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.send(err.toString());
+    res.status(404).send('Route not found');
 });
 
 

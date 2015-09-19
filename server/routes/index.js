@@ -4,17 +4,6 @@ var data = require('../data.js');
 var gen = require('../generate.js');
 var request = require('request');
 
-router.get('/queueStatus', function(req, res, next) {
-    if(!req.party) {
-        res.status(400).send('Party does not exist');
-        return;
-    }
-
-    res.status(200).json({
-        activePlay: req.party.activePlay,
-        plays: req.party.plays
-    });
-});
 
 router.get('/clientCode', function(req, res, next) {
     var clientCode;
@@ -53,95 +42,6 @@ router.post('/create', function(req, res, next) {
     req.party.options = req.body;
     res.status(200).json(req.party);
     return;
-});
-
-router.post('/join', function(req, res, next) {
-    if(!req.client) {
-        res.status(400).send('Client could not be identified');
-        return;
-    }
-
-    if(!req.party) {
-        res.status(400).send('Party does not exist');
-        return;
-    }
-
-    req.party.clients.push(req.clients);
-    res.status(200).end();
-});
-
-router.post('/vote', function(req, res, next) {
-    if(!req.client) {
-        res.status(400).send('Client could not be identified');
-        return;
-    }
-
-    if(!req.party) {
-        res.status(400).send('Party does not exist');
-        return;
-    }
-
-    var direction = req.query.direction;
-    if(direction != data.Vote.Up || direction != data.Vote.Down) {
-        res.status(400).send('Unrecognised vote value');
-        return;
-    }
-
-    var play = req.party.plays.getPlay(req.query.play)
-    if(play == null) {
-        res.status(400).send('Unrecognised play');
-        return;
-    }
-
-    if(!req.client.getVote(play)) {
-        play.feedback += direction;
-        req.client.votes.push(new data.Vote(play, req.client, direction));
-    }
-
-    res.status(200).json({feedback: play.feedback, direction: direction});
-    return;
-});
-
-router.post('/suggest', function(req, res, next) {
-    if(!req.party) {
-        res.status(400).send('Party does not exist');
-        return;
-    }
-
-    var suggestionId = req.query.suggestion;
-    for(var i = req.party.activePlay; i < req.party.plays; i++) {
-        var p = req.party.plays[i];
-        if(p.globalId == suggestionId) { 
-            res.status(200).json({accepted: false, reson: 'This song is waiting in the queue'});
-            return;
-        }
-    }
-
-    request('http://api.deezer.com/search/track/' + req.query.q, function(error, response, body) {
-        if(error) {
-            res.status(200).json({accepted: false, reson: 'Deezer is unavailable'}); 
-            return;
-        }
-        else if(body.error) {
-            res.status(200).json({accepted: false, reson: 'Track does not exist'}); 
-            return;
-        }
-        
-        var p = req.party.addPlay(suggestionId);
-        p.title = body.title;
-        p.artist = body.artist.name;
-        p.duration = body.duration;
-        p.artUrl = body.album.cover_big;
-
-        res.status(200).json({accepted: true});
-    });
-    
-});
-
-router.post('/play', function(req, res, next) {
-});
-
-router.post('/veto', function(req, res, next) {
 });
 
 router.get('/search', function(req, res, next) {

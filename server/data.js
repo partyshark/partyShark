@@ -24,15 +24,17 @@ exports.Model.prototype = {
     isClientCodeUsed: function(code) { return this.getClient(code) != null; },
 };
 
-exports.Play = function() {
+exports.Play = function(suggestor) {
     this.title;
     this.artist;
-    this.length;
-    this.position;
-    this.id;
-    this.globalId;
-    this.musicUrl;
+    this.duration;
     this.artUrl;
+
+    this.position;
+    this.localId;
+    this.globalId;
+    this.suggestor = suggestor;
+
     this.vetoed = false;
     this.feedback = 0;
 };
@@ -45,22 +47,31 @@ exports.Party = function(voterCode, adminCode) {
     this.plays = [];
 
     this.activePlay = -1;
+    this.paused = false;
 };
 exports.Party.prototype = { 
-    getPlay: function(instanceId) {
-        for(var i = 0; i < this.songs; i++) {
-            if(this.songs[i].instanceId == instanceId) { return this.songs; }
+    getPlay: function(localId) {
+        for(var i = 0; i < this.plays.length; i++) {
+            if(this.plays[i].localId == localId) { return this.plays[i]; }
         }
         return null;
     },
 
-    addPlay: function(globalId) {
+    addPlay: function(globalId, suggestor) {
         var p = new exports.Play();
         p.globalId = globalId;
-        p.id = this.plays.length;
-        p.position = p.id;
+        p.suggestor = suggestor;
+        p.localId = this.plays.length;
+        p.position = p.localId;
         this.plays.push(p);
         return p;
+    },
+
+    getClient: function(clientCode) {
+        for(var i = 0; i < this.clients.length; i++) {
+            if(this.clients[i].code == clientCode) { return this.clients[i]; }
+        }
+        return null;
     }
 };
 
