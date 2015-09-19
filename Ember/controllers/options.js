@@ -7,7 +7,7 @@ PartyShark.OptionsController = Ember.ObjectController.extend({
     		}
     		$.ajax({
   				type: 'POST',
-  				url: 'http://nreid26.xyz/create',
+  				url: '/create',
   				data: options,
   				success: function(data) {
   					alert(data);
