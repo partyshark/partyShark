@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
     <title>Party Shark</title>
-
+    <link rel="stylesheet" href="freelancer.css">
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
     <script src="libs/jquery-1.11.2.min.js"></script>
     <script src="libs/handlebars-v2.0.0.js"></script>
     <script src="libs/ember.js"></script>
@@ -12,21 +20,28 @@
 
     <script src="partyShark.js"></script>
 
+    <!-- Controllers -->
+    <script src="controllers/index.js"></script>
+    <script src="controllers/options.js"></script>
+
     <script src="router.js"></script>
-    <script src="models/song.js"></script>
+
+    <!-- Models -->
+
     
-    <script src="routes/options.js"></script>
+    <!-- Routes -->
     <script src="routes/playlist.js"></script>
-    <script src="routes/search.js"></script>
-
-    <script>
-        EmberHandlebarsLoader.loadTemplates([
-            'application','options','playlist', 'search'
-        ]);
-    </script>
-
+    <script src="routes/options.js"></script>
+    <script src="routes/client.js"></script>
+    
 </head>
 <body>
 
 </body>
+
+<script>
+        EmberHandlebarsLoader.loadTemplates([
+            'application', 'playlist', 'options', 'index', 'client'
+        ]);
+    </script>
 </html>

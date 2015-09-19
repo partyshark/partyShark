@@ -1,1 +1,3 @@
-PartyShark.PlaylistRoute = Ember.Route.extend({});
+PartyShark.PlaylistRoute = Ember.Route.extend({
+   
+});
