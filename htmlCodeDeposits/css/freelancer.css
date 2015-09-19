@@ -451,3 +451,10 @@ footer .footer-below {
     display: none;
     opacity: 0;
 }
+
+.results {
+    height: 300px !important;
+    padding: 10px 0 10px 10px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

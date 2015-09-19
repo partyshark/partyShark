@@ -7196,7 +7196,7 @@ table .success>th>a,.table .success>th>a,table .warning>th>a,.table .warning>th>
 }
 table>thead>tr>th,.table>thead>tr>th,table>tbody>tr>th,.table>tbody>tr>th,table>tfoot>tr>th,.table>tfoot>tr>th,table>thead>tr>td,.table>thead>tr>td,table>tbody>tr>td,.table>tbody>tr>td,table>tfoot>tr>td,.table>tfoot>tr>td
 {
-	border: none;
+	border: 1px solid #ecf0f1;
 }
 table-bordered>thead>tr>th,.table-bordered>thead>tr>th,table-bordered>tbody>tr>th,.table-bordered>tbody>tr>th,table-bordered>tfoot>tr>th,.table-bordered>tfoot>tr>th,table-bordered>thead>tr>td,.table-bordered>thead>tr>td,table-bordered>tbody>tr>td,.table-bordered>tbody>tr>td,table-bordered>tfoot>tr>td,.table-bordered>tfoot>tr>td
 {
