@@ -23,9 +23,16 @@ PartyShark.Party = DS.Model.extend({
    voterCode: DS.attr(),
    adminCode: DS.attr(),
    plays: DS.hasMany('play'),
-   activePlay: DS.attr(),
-   paused: DS.attr('boolean'),
-   client: DS.belongsTo('client')
+   activePlay: DS.attr('number', {defaultValue: 0.0}),
+   paused: DS.attr('boolean', {defaultValue: false}),
+   client: DS.belongsTo('client'),
+   
+   partyCode: function() {
+    	if(!this.get('adminCode'))
+    		return this.get('voterCode');
+    	else
+    		return this.get('adminCode');
+	}.property('voterCode', 'adminCode')
 });
 
 PartyShark.Vote = DS.Model.extend({

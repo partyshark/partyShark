@@ -27,51 +27,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
+                        	{{#each track in results}}
+                            <tr {{action 'suggestTrack' track}}>
+                                <td>{{track.title}}</td>
+                                <td>{{track.artist.name}}</td>
+                                <td>{{track.album.title}}</td>
                             </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
-                            <tr>
-                                <td>a</td>
-                                <td>b</td>
-                                <td>c</td>
-                            </tr>
+                            {{/each}}
                         </tbody>
                     </table>
                 </div>

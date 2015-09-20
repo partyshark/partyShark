@@ -1,5 +1,5 @@
 PartyShark.PartyRoute = Ember.Route.extend({
-	renderTemplate: function() {
-    	this.render('party');
-  }
+	model: function() {
+		return this.store.find('party', 0);
+	}
 });
