@@ -14,7 +14,7 @@ PartyShark.OptionsController = Ember.ObjectController.extend({
   				},
   				dataType: 'json'
 });
-    		this.transitionToRoute('client');
+    		this.transitionToRoute('/party/AAAA/search');
     	}
     }
 });

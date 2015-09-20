@@ -1,14 +1,15 @@
 var EmberHandlebarsLoader = {
   loadTemplates: function(templateNames) {
-    templateNames.forEach(function(name) {
+  	for(var fileName in templateNames) {
+  	  var emberName = templateNames[fileName] || fileName;
       $.ajax({
-        url: "templates/" + name + ".hbs",
+        url: "templates/" + fileName + ".hbs",
         async: false,
         success: function(template) {
           var compiledTemplate = Ember.Handlebars.precompile(template);
-          Ember.TEMPLATES[name] = Ember.Handlebars.template(compiledTemplate);
+          Ember.TEMPLATES[emberName] = Ember.Handlebars.template(compiledTemplate);
         }
       });
-    });
+    }
   }
 };

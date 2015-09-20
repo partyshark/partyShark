@@ -1,0 +1,34 @@
+PartyShark.Client = DS.Model.extend({
+   code: DS.attr(),
+   votes: DS.hasMany('vote'),
+   party: DS.belongsTo('party')
+});
+
+PartyShark.Play = DS.Model.extend({
+   title: DS.attr(),
+   artist: DS.attr(),
+   duration: DS.attr(),
+   artUrl: DS.attr(),
+   postion: DS.attr(),
+   localId: DS.attr(),
+   globalId: DS.attr(),
+   suggestor: DS.attr(),
+   vetoed: DS.attr('boolean'),
+   feedback: DS.attr('number'),
+   hasPlayed: DS.attr('boolean'),
+   party: DS.belongsTo('party')
+});
+
+PartyShark.Party = DS.Model.extend({
+   voterCode: DS.attr(),
+   adminCode: DS.attr(),
+   clients: DS.hasMany('client'),
+   plays: DS.hasMany('play'),
+   activePlay: DS.attr(),
+   paused: DS.paused('boolean'),
+   client: DS.belongsTo('client')
+});
+
+PartyShark.Vote = DS.Model.extend({
+   client: DS.belongsTo('post')
+});

@@ -24,16 +24,19 @@
     <script src="controllers/index.js"></script>
     <script src="controllers/options.js"></script>
     <script src="controllers/client.js"></script>
+    <script src="controllers/search.js"></script>
 
     <script src="router.js"></script>
 
     <!-- Models -->
+    <script src="models/model.js"></script>
 
-    
     <!-- Routes -->
     <script src="routes/playlist.js"></script>
     <script src="routes/options.js"></script>
     <script src="routes/client.js"></script>
+    <script src="routes/party.js"></script>
+    <script src="routes/search.js"></script>
     
 </head>
 <body>
@@ -41,8 +44,13 @@
 </body>
 
 <script>
-        EmberHandlebarsLoader.loadTemplates([
-            'application', 'playlist', 'options', 'index', 'client'
-        ]);
+        EmberHandlebarsLoader.loadTemplates({
+            'application': 0,
+            'playlist': 'party/playlist',
+            'options': 0,
+            'index': 0,
+            'party': 0, 
+            'search' : 'party/search'
+        });
     </script>
 </html>
