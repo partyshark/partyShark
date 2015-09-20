@@ -20,24 +20,27 @@ router.post('/create', function(req, res, next) {
         res.status(400).send('Client could not be identified');
         return;
     }
-
     var voterCode;
     do {
         voterCode = gen.code(5);
-    } while (req.model.parties.isPartyCodeUsed(voterCode)) 
+    } while (req.model.isPartyCodeUsed(voterCode)) 
 
     var adminCode;
     do {
         adminCode = gen.code(5);
-    } while (req.model.parties.isPartyCodeUsed(adminCode)) 
+    } while (req.model.isPartyCodeUsed(adminCode)) 
 
-    req.party = new data.Party(voterCode, adminCode);
-    req.model.parties.push(req.party);
+    var p = new data.Party(voterCode, adminCode);
+    req.party = p;
+    req.model.parties.push(p);
 
-    req.party.clients.push(req.client)
+    p.clients.push(req.client)
     
-    req.party.options = req.body;
-    res.status(200).json(req.party);
+    p.options = req.body;
+    res.status(200).json({
+    	adminCode: p.adminCode,
+    	voterCode: p.voterCode
+	});
     return;
 });
 
