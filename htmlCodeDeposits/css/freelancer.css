@@ -458,3 +458,39 @@ footer .footer-below {
     overflow-y: scroll;
     overflow-x: hidden;
 }
+
+.song {
+    position: relative;
+}
+
+.upvote {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #85BF25;
+}
+.downvote {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: #EE4444;
+}
+
+.upvote .btn:hover {
+    color: #6A991E;
+}
+
+.downvote .btn:hover {
+    color: #BE3636;
+}
+
+i#upvotes{
+    color: #85BF25;
+}
+i#downvotes{
+    color: #EE4444;
+}
+
+.deezerplayer {
+    display: none;
+}
