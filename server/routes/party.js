@@ -51,19 +51,22 @@ router.post('/suggest', function(req, res, next) {
         }
     }
 
-    request('http://api.deezer.com/search/track/' + req.query.q, function(error, response, body) {
+    request('http://api.deezer.com/track/' + suggestionId, function(error, response, body) {
         if(error) {
             res.status(200).json({accepted: false, cause: 'Deezer is unavailable'}); 
             return;
         }
-        else if(body.error) {
+        
+    	body = JSON.parse(body);
+    	        
+        if(body.error) {
             res.status(200).json({accepted: false, cause: 'Track does not exist'}); 
             return;
         }
         
         var p = req.party.addPlay(suggestionId, req.client);
         p.title = body.title;
-        p.artist = body.artist.name;
+        //p.artist = body.artist.name;
         p.duration = body.duration;
         p.artUrl = body.album.cover_big;
 

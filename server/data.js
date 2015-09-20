@@ -46,7 +46,7 @@ exports.Party = function(voterCode, adminCode) {
     this.clients = [];
     this.plays = [];
 
-    this.activePlay = -1;
+    this.activePlay = 0;
     this.paused = false;
 };
 exports.Party.prototype = { 

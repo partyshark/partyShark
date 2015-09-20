@@ -28,7 +28,7 @@ app.use('/', require('./routes/index.js'));
 app.use('/party/:partyCode', function(req, res, next) {
     req.model = model;
     req.party = model.getParty(req.params.partyCode);
-    req.client = model.getClient(req.query.clientCode);
+    req.client = model.getClient(req.query.client);
 
     if(!req.party) { res.status(400).send('Party does not exist'); }
     else if(!req.client) { res.status(400).send('Client does not exist'); }

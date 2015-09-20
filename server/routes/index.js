@@ -10,7 +10,7 @@ router.get('/clientCode', function(req, res, next) {
     do {
         clientCode = gen.code(50);
     } while (req.model.isClientCodeUsed(clientCode))
-    req.model.clients = new data.Client(clientCode);
+    req.model.clients.push(new data.Client(clientCode));
 
     res.status(200).json({clientCode: clientCode});
 });
