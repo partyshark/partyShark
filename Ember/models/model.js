@@ -22,13 +22,19 @@ PartyShark.Play = DS.Model.extend({
 PartyShark.Party = DS.Model.extend({
    voterCode: DS.attr(),
    adminCode: DS.attr(),
-   clients: DS.hasMany('client'),
    plays: DS.hasMany('play'),
    activePlay: DS.attr(),
-   paused: DS.paused('boolean'),
+   paused: DS.attr('boolean'),
    client: DS.belongsTo('client')
 });
 
 PartyShark.Vote = DS.Model.extend({
-   client: DS.belongsTo('post')
+   client: DS.belongsTo('client'),
+   play: DS.belongsTo('play'),
+   value: DS.attr()
 });
+
+PartyShark.Client.reopenClass({ FIXTURES: [] });
+PartyShark.Play.reopenClass({ FIXTURES: [] });
+PartyShark.Party.reopenClass({ FIXTURES: [] });
+PartyShark.Vote.reopenClass({ FIXTURES: [] });
