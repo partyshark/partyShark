@@ -19,6 +19,10 @@ app.use('/', express.static(__dirname + '/../Ember')); //Serve static files as '
 
 
 //Routing
+app.use('/', function(req, res, next) {
+    req.model = model;
+    next();
+});
 app.use('/', require('./routes/index.js'));
 
 app.use('/party/:partyCode', function(req, res, next) {

@@ -21,23 +21,20 @@ router.post('/create', function(req, res, next) {
         return;
     }
 
-    if(!req.party)
-    {
-        var voterCode;
-        do {
-            voterCode = gen.code(5);
-        } while (req.model.parties.isPartyCodeUsed(voterCode)) 
+    var voterCode;
+    do {
+        voterCode = gen.code(5);
+    } while (req.model.parties.isPartyCodeUsed(voterCode)) 
 
-        var adminCode;
-        do {
-            adminCode = gen.code(5);
-        } while (req.model.parties.isPartyCodeUsed(adminCode)) 
+    var adminCode;
+    do {
+        adminCode = gen.code(5);
+    } while (req.model.parties.isPartyCodeUsed(adminCode)) 
 
-        req.party = new data.Party(voterCode, adminCode);
-        req.model.parties.push(req.party);
+    req.party = new data.Party(voterCode, adminCode);
+    req.model.parties.push(req.party);
 
-        req.party.clients.push(req.client)
-    }
+    req.party.clients.push(req.client)
     
     req.party.options = req.body;
     res.status(200).json(req.party);

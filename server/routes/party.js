@@ -4,9 +4,12 @@ var data = require('../data.js');
 var gen = require('../generate.js');
 var request = require('request');
 
-router.post('/', function(req, res, next) {
+router.post('/join', function(req, res, next) {
     req.party.clients.push(req.clients);
-    res.status(200).end();
+
+    var ret = JSON.parse(JSON.stringify(preq.party));
+    if(ret.adminCode != req.params.partyCode) { ret.adminCode = null; }
+    res.status(200).json(ret);
 });
 
 router.get('/playlist', function(req, res, next) {
