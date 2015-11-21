@@ -3083,9 +3083,9 @@ fieldset[disabled] .btn-default.active {
   background-color: #ffffff;
 }
 .btn-primary {
-  color: #ffffff;
-  background-color: #2c3e50;
-  border-color: #2c3e50;
+  color: #95a5a6;
+  background-color: #FFFFFF;
+  border-color: #95a5a6;
 }
 .btn-primary:hover,
 .btn-primary:focus,

@@ -3478,14 +3478,14 @@ textarea.form-group-lg .form-control,select[multiple].form-group-lg .form-contro
 }
 .btn-primary
 {
-	background-color: #2c3e50;
-	border-color: #2c3e50;
-	color: #ffffff;
+	background-color: #ffffff;
+	border-color: #69D2E7;
+	color: #69D2E7;
 }
 .btn-primary:hover,.btn-primary:focus,.btn-primary.focus,.btn-primary:active,.btn-primary.active,.open>.dropdown-toggle.btn-primary
 {
-	background-color: #1a242f;
-	border-color: #161f29;
+	background-color: #69D2E7;
+	border-color: #FFFFFF;
 	color: #ffffff;
 }
 .btn-primary:active,.btn-primary.active,.open>.dropdown-toggle.btn-primary

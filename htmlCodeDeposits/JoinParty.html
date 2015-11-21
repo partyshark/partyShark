@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>PartyShark</title>
+    <title>PartyShark | Join a Party</title>
 
     <!-- Bootstrap Core CSS - Uses Bootswatch Flatly Theme: http://bootswatch.com/flatly/ -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -44,47 +44,33 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <p class="navbar-brand" href="#page-top">PartyShark</p>
+                <p class="navbar-brand">PartyShark</p>
             </div>
+            <!-- /.navbar-collapse -->
         </div>
+        <!-- /.container-fluid -->
     </nav>
-
-    <!-- Options -->
-    <br><br><br><br>
-    <section id="howitworks">
+    <br><br><br><br><br>
+    <!-- Access Codes -->
+    <section class="success" id="codes">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2>Options</h2>
-                    <hr class="star-primary">
-                    <p>Please select the desired options for your party</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <form>
-                      <div class="form-group">
-                        <label for="numParticipants">Maximum Number of Party Participants</label>
-                        <input type="number" class="form-control" id="numParticipants" placeholder="Maximum Number of Participants" min="0">
-                      </div>
-                      <div class="form-group">
-                        <label for="maxQueue">Maximum Size of the Song Queue</label>
-                        <input type="number" class="form-control" id="maxQueue" placeholder="Maximum Queue Size" min="0">
-                      </div>
-                      <div class="form-group">
-                          <div class="checkbox">
-                            <label>
-                              <input type="checkbox" id="virtualDJ"> <b>Virtual DJ</b> - Plays airhorn between song changes
-                            </label>
-                          </div>
-                      </div>
-                      <button type="submit" class="btn btn-default" id="partyStarted">Start The Party</button>
-                    </form>
+                    <h2>Join A Party</h2>
+                    <hr class="star-light">
+                    <p>Please enter the party code:</p>
+                    <div class="col-lg-6 col-lg-offset-3 text-center">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Enter Party Code">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="button">Join The Party!</button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
-
     <!-- Footer -->
     <footer class="text-center">
         <div class="footer-below">
