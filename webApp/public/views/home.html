@@ -1,8 +1,16 @@
-   <header>
+<header>
    <section id="start">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
+                    <div ng-show="exitNotification">
+                        <div class="container">
+                            <div class="alert alert-success" role="alert">
+                                <h4>You have been logged out successfully.</h4>
+                                <button class="btn btn-default" ng-click="exitNotification=false">Ok</button>
+                            </div>
+                        </div>
+                    </div>
                     <img class="img-responsive" src="res/profile.png" alt="">
                     <div class="intro-text">
                         <span class="name">PartyShark</span>

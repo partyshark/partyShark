@@ -1,1 +1,39 @@
-<h1>Search</h1>
+<body class="index">
+    <section id="search">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>Search</h2>
+                    <hr class="star-primary">
+                    <form class="input-group" ngSubmit="submitSearch();">
+                        <input type="text" class="form-control" placeholder="Search for..." ng-model="searchParams">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" ng-click="submitSearch();">Go!</button>
+                        </span>
+                    </form>
+                </div>
+            </div>
+            <br><br>
+            <div class="results">
+                <div class="row">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Song</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="song in searchResults">
+                                <td>{{song.name}}</td>
+                                <td>{{song.artist}}</td>
+                                <td>{{song.album}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
