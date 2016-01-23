@@ -8,7 +8,7 @@ controllersModule.controller('mainController', function($scope, $location, $root
         $location.path('/'+partyService.getPartyCode()+'/search');
     }
     $scope.exit = function() {
-    	if(logout()) {
+    	if(leaveParty()) {
             $location.path('/');
             $scope.topButtons.splice(0,$scope.topButtons.length);
             $rootScope.exitNotification = true;
@@ -30,18 +30,21 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $location, $rootScope, partyService, playlistService) {
+controllersModule.controller('playlistController', function($scope, $rootScope, playlistService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
     $scope.emptyPlaylist = playlistService.isEmpty();
-    
-
+    $scope.playlist = playlistService.getPlaylist();
 });
 
-controllersModule.controller('searchController', function($scope, $rootScope, partyService, searchResultsService) {
+controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
     $scope.submitSearch = function() {
-        searchResultsService.setResults(search($scope.searchParams));
-        $scope.searchResults = searchResultsService.getResults();
+        $scope.searchResults = search($scope.searchParams);
         $scope.searchParams = "";
+    }
+    $scope.addSong = function(id) {
+        if(playlistService.addSong(id)) {
+            $location.path('/'+partyService.getPartyCode()+'/playlist');
+        }
     }
 });

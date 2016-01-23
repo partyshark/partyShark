@@ -9,10 +9,6 @@ servicesModule.service('partyService',['optionsService', function(){
     		}
     		else
     			return _partyCode;
-    	},
-    	setPartyCode: function(code) {
-    		_partyCode = code;
-    		return _partyCode;
     	}
     }
 }]);
@@ -40,25 +36,21 @@ servicesModule.service('optionsService', function() {
 
 servicesModule.service('playlistService', function() {
 	var _emptyPlaylist = true;
+	var _playlist = [];
 	return {
 		isEmpty: function() {
 			return _emptyPlaylist;
 		},
-		toggleEmpty: function() {
-			_emptyPlaylist = !_emptyPlaylist;
-			return _emptyPlaylist;
-		}
-	}
-});
-
-servicesModule.service('searchResultsService', function() {
-	var _searchResults = [];
-	return {
-		setResults: function(results) {
-			_searchResults = results;
+		getPlaylist: function() {
+			return _playlist;
 		},
-		getResults: function() {
-			return _searchResults;
+		addSong: function(songId) {
+			var song = addSong(songId);
+			_playlist.push(song);
+			if(_emptyPlaylist) {
+				_emptyPlaylist = false;
+			}
+			return true;
 		}
 	}
 });

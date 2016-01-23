@@ -25,7 +25,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="song in searchResults">
+                            <tr ng-repeat="song in searchResults" ng-click="addSong(song.id);">
                                 <td>{{song.name}}</td>
                                 <td>{{song.artist}}</td>
                                 <td>{{song.album}}</td>
