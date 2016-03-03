@@ -42,15 +42,28 @@ servicesModule.service('partyService', function(){
     }
 });
 
-servicesModule.service('optionsService', function() {
+servicesModule.service('optionsService', function() { 
 	var _numParticipants = 10,
-		_maxQueueSize = 50;
+		_maxQueueSize = 50,
+		_virtualDj = false,
+		_defaultGenre = "rock",
+		_vetoRatio = 0.5;
+
 	return {
 		getNumParticipants: function() {
 			return _numParticipants;
 		},
 		getMaxQueueSize: function() {
 			return _maxQueueSize;
+		},
+		getVirtualDj: function() {
+			return _virtualDj;
+		},
+		getDefaultGenre: function() {
+			return _defaultGenre;
+		},
+		getVetoRatio: function() {
+			return _vetoRatio;
 		},
 		setNumParticipants: function(num) {
 			_numParticipants = num;
@@ -79,7 +92,7 @@ servicesModule.service('playlistService', function() {
 	}
 });
 
-servicesModule.service('netService', function($http, partyService, playlistService) {
+servicesModule.service('netService', function($http, partyService, playlistService, optionsService) {
 	return {
 		createParty: function() {
 			return $http.post('https://api.partyshark.tk/parties', {
@@ -158,7 +171,23 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		updatePartySettings: function(partyCode) {
+			return $http.put('https://api.partyshark.tk/parties', {
+				"virtual_dj": optionsService.getVirtualDj(),
+  				"default_genre": optionsService.getDefaultGenre(),
+  				"user_cap": optionsService.getNumParticipants(),
+  				"playthrough_cap": optionsService.getMaxQueueSize(),
+  				"veto_ratio": optionsService.getVetoRatio()
+			})
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                }, function(response) {
+                    return false;
+                });
 		},
 		sendContact: function(contactObject) {
 			return true;

@@ -45,14 +45,32 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService) {
+controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
     $scope.startParty = function() {
     	optionsService.setNumParticipants($scope.numParticipants);
     	optionsService.setMaxQueueSize($scope.maxQueue);
 
     	//Make call to server to start party, on success, obtain party code and redirect
-        $location.path('/'+partyService.getPartyCode()+'/playlist');
+        netService.getParty($scope.partyCode)
+            .then(function(data) {
+                if(data)
+                    //Set party options once party is created
+                    netService.updatePartySettings()
+                        .then(function(data) {
+                            if(data)
+                                $location.path('/'+partyService.getPartyCode()+'/playlist');
+                            else
+                                alert("Could not connect to server, please try again.");
+                        }, function(error) {
+                            alert("Error updating settings party.")
+                        });
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error creating party.")
+            });
+        
     }
 });
 
