@@ -171,7 +171,7 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		updatePartySettings: function(partyCode) {
-			return $http.put('https://api.partyshark.tk/parties', {
+			return $http.put('https://api.partyshark.tk/parties/'+partyService.getPartyCode()+'/settings', {
 				"virtual_dj": optionsService.getVirtualDj(),
   				"default_genre": optionsService.getDefaultGenre(),
   				"user_cap": optionsService.getNumParticipants(),
