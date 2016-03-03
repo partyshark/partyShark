@@ -30,6 +30,9 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
             }, function(error) {
                 alert("Error joining party.")
             });
+    },
+    $scope.backHome = function() {
+        $location.path('/');
     }
 });
 
@@ -61,8 +64,8 @@ controllersModule.controller('playlistController', function($scope, $rootScope, 
     }
 
     //fetch existing playlist from server
-    
-    
+
+
     $scope.emptyPlaylist = playlistService.isEmpty();
     $scope.playlist = playlistService.getPlaylist();
 });

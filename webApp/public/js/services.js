@@ -132,7 +132,7 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 		},
 		createPlaythrough: function(songId) {
 			return $http.post('https://api.partyshark.tk/parties', {
-				“song”: songId
+				"song": songId
 			})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
