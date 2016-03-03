@@ -54,3 +54,43 @@ servicesModule.service('playlistService', function() {
 		}
 	}
 });
+
+servicesModule.service('netService', function() {
+	return {
+		createParty: function() {
+
+		},
+		requestPlayer: function(partyCode, playerTransferCode) {
+
+		},
+		handlePlayerRequest: function(status) {
+
+		},
+		getPlaylist: function(partyCode) {
+
+		},
+		createPlaythrough: function(songId) {
+
+		},
+		vetoPlaythrough: function(partyCode, playthroughCode) {
+
+		},
+		getPlaythrough: function(partyCode, playthroughCode) {
+
+		},
+		updateCurrentPlaythrough: function(partyCode, playthroughCode) {
+
+		},
+		getPartySettings: function(partyCode) {
+
+		},
+		updatePartySettings: function(partyCode) {
+			
+		}	
+	}
+});
+
+
+
+
+
