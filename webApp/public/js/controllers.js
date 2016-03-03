@@ -1,6 +1,6 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $location, $rootScope, $route, partyService) {
+controllersModule.controller('mainController', function($scope, $location, $rootScope, $route, partyService, netService) {
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
     }
@@ -16,6 +16,15 @@ controllersModule.controller('mainController', function($scope, $location, $root
         else {
             //Handle error for improper logout here
         }
+    },
+    $scope.sendContact = function() {
+        netService.sendContact({
+            "name": $scope.contactName,
+            "email": $scope.contactEmail,
+            "phone": $scope.contactPhone,
+            "message": $scope.contactMessage
+        });
+        alert("Message send triggered.");
     }
 });
 

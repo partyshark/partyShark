@@ -159,6 +159,9 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 		},
 		updatePartySettings: function(partyCode) {
 
+		},
+		sendContact: function(contactObject) {
+			return true;
 		}	
 	}
 });
