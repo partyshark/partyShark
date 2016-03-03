@@ -7,6 +7,11 @@ partyShark.config(function($routeProvider) {
             controller  : 'mainController'
         })
 
+        .when('/joinParty', {
+            templateUrl : 'views/joinParty.html',
+            controller  : 'joinPartyController'
+        })
+
         .when('/options', {
             templateUrl : 'views/options.html',
             controller  : 'optionsController'

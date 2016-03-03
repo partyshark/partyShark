@@ -1,17 +1,46 @@
 var servicesModule = angular.module('servicesModule',[]);
 
-servicesModule.service('partyService',['optionsService', function(){
-    var _partyCode = "87654321";
+servicesModule.service('partyService', function(){
+    var _partyCode = "",
+    	_adminCode = "",
+    	_userName = "",
+    	_playerName = "",
+    	_isPlaying = false;
     return {
+    	getUserName: function() {
+    		return _userName;
+    	},
     	getPartyCode: function() {
-    		if(_partyCode == "") {
-    			//fetch code from server, injected with options
-    		}
-    		else
-    			return _partyCode;
+    		return _partyCode;
+    	},
+    	setPartyCode: function(partyCode) {
+    		_partyCode = partyCode;
+    		return true;
+    	},
+    	setAdminCode: function(adminCode) {
+    		_adminCode = adminCode;
+    		return true;
+    	},
+    	setUserName: function(userName) {
+    		_userName = userName;
+    		return true;
+    	},
+    	setPlayerName: function(playerName) {
+    		_playerName = playerName;
+    		return true;
+    	},
+    	setPlaying: function(status) {
+    		_isPlaying = status;
+    		return true;
+    	},
+    	setParty: function(partyObject) {
+    		_partyCode = partyObject.code;
+            _adminCode = partyObject.admin_code;
+            _playerName = partyObject.player;
+            _isPlaying = partyObject.is_playing;
     	}
     }
-}]);
+});
 
 servicesModule.service('optionsService', function() {
 	var _numParticipants = 10,
@@ -44,22 +73,43 @@ servicesModule.service('playlistService', function() {
 		getPlaylist: function() {
 			return _playlist;
 		},
-		addSong: function(songId) {
-			var song = addSong(songId);
-			_playlist.push(song);
-			if(_emptyPlaylist) {
-				_emptyPlaylist = false;
-			}
-			return true;
+		setPlaylist: function(playlist) {
+			_playlist = playlist;
 		}
 	}
 });
 
-servicesModule.service('netService', function() {
+servicesModule.service('netService', function($http, partyService, playlistService) {
 	return {
 		createParty: function() {
+			return $http.post('https://api.partyshark.tk/parties', {
+			})
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                    	partyService.setParty(response.data);
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                }, function(response) {
+                    return false;
+                });
 		},
+		getParty: function(partyCode) {
+            return $http.get('https://api.partyshark.tk/parties/'+partyCode)
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                    	partyService.setParty(response.data);
+                        return true;
+                    } else {
+                        return false;
+                    }
+
+                }, function(response) {
+                    return false;
+                });
+        },
 		requestPlayer: function(partyCode, playerTransferCode) {
 
 		},
@@ -67,10 +117,33 @@ servicesModule.service('netService', function() {
 
 		},
 		getPlaylist: function(partyCode) {
+			return $http.get('https://api.partyshark.tk/parties/'+partyService.getPartyCode()+'/playlist')
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                    	playlistService.setPlaylist(response.data.values);
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                }, function(response) {
+                    return false;
+                });
 		},
 		createPlaythrough: function(songId) {
+			return $http.post('https://api.partyshark.tk/parties', {
+				“song”: songId
+			})
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                }, function(response) {
+                    return false;
+                });
 		},
 		vetoPlaythrough: function(partyCode, playthroughCode) {
 
@@ -85,7 +158,7 @@ servicesModule.service('netService', function() {
 
 		},
 		updatePartySettings: function(partyCode) {
-			
+
 		}	
 	}
 });

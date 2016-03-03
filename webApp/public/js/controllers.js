@@ -19,6 +19,20 @@ controllersModule.controller('mainController', function($scope, $location, $root
     }
 });
 
+controllersModule.controller('joinPartyController', function($scope, $location, netService) {
+    $scope.joinParty = function() {
+        netService.getParty($scope.partyCode)
+            .then(function(data) {
+                if(data)
+                    $location.path('/'+$scope.partyCode+'/playlist');
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error joining party.")
+            });
+    }
+});
+
 controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
     $scope.startParty = function() {
@@ -30,8 +44,25 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $rootScope, playlistService) {
+controllersModule.controller('playlistController', function($scope, $rootScope, playlistService, partyService, netService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
+
+    //if local partycode is empty, must have joined via link, fetch party from server
+    if(partyService.getPartyCode() == "") {
+        netService.getParty($scope.partyCode)
+            .then(function(data) {
+                if(data)
+                    $location.path('/'+partyService.getPartyCode()+'/playlist');
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error joining party.")
+            });
+    }
+
+    //fetch existing playlist from server
+    
+    
     $scope.emptyPlaylist = playlistService.isEmpty();
     $scope.playlist = playlistService.getPlaylist();
 });
