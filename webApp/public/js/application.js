@@ -1,4 +1,4 @@
-var partyShark = angular.module('partyShark', ['ngRoute', 'servicesModule', 'controllersModule']);
+var partyShark = angular.module('partyShark', ['ngRoute', 'servicesModule', 'controllersModule', 'directivesModule']);
 
 partyShark.config(function($routeProvider) {
     $routeProvider

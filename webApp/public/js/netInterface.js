@@ -36,3 +36,5 @@ function addSong(id) {
 		"downvotes": "0"
 	}
 }
+
+function fetchParty()
