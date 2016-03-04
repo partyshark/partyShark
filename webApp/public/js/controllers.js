@@ -91,15 +91,22 @@ controllersModule.controller('playlistController', function($scope, $rootScope, 
     }
 
     //fetch existing playlist from server
-
-
-    $scope.emptyPlaylist = playlistService.isEmpty();
-    $scope.playlist = playlistService.getPlaylist();
+    netService.getPlaylist($scope.partyCode)
+            .then(function(data) {
+                if(data)
+                    $scope.emptyPlaylist = playlistService.isEmpty();
+                    $scope.playlist = playlistService.getPlaylist();
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error joining party.")
+            });
 });
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
-    netService.searchSongs($scope.searchParams)
+    $scope.submitSearch = function() {
+        netService.searchSongs($scope.searchParams)
             .then(function(data) {
                 if(data)
                     $scope.searchResults = data;
@@ -108,10 +115,16 @@ controllersModule.controller('searchController', function($scope, $location, $ro
             }, function(error) {
                 alert("Error fetching search results party.")
             });
-
-    $scope.addSong = function(id) {
-        if(playlistService.addSong(id)) {
-            $location.path('/'+partyService.getPartyCode()+'/playlist');
-        }
+    },
+    $scope.addSong = function(songCode) {
+        netService.createPlaythrough(songCode)
+            .then(function(data) {
+                if(data)
+                    $location.path('/'+partyService.getPartyCode()+'/playlist');
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error fetching search results party.")
+            });
     }
 });
