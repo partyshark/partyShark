@@ -202,12 +202,35 @@ servicesModule.service('netService', function($http, partyService, playlistServi
                 });
 		},
 		getSong: function(songCode) {
-			//check cache first, if not in there, fetch and add to cache
 			var song = isSongCached(songCode);
 			if(song)
 				return song;
-			//Fetch from server
+			else
+				return $http.get('https://api.partyshark.tk/songs/'+songCode)
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                    	return response.data;
+                    } else {
+                        return false;
+                    }
+
+                }, function(response) {
+                    return false;
+                });
 		},
+		searchSongs: function(query) {
+			return $http.get('https://api.partyshark.tk/songs?'+query)
+                .then(function(response) {
+                    if (typeof response.data === 'object') {
+                    	return response.data;
+                    } else {
+                        return false;
+                    }
+
+                }, function(response) {
+                    return false;
+                });
+		}
 		sendContact: function(contactObject) {
 			return true;
 		}	
