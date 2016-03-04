@@ -76,6 +76,18 @@ servicesModule.service('optionsService', function() {
 	}
 });
 
+servicesModule.service('cacheService', function() {
+	_songCache = [];
+	return {
+		isSongCached: function(songCode) {
+			var result = $.grep(myArray, function(e){ return e.code == songCode; });
+			if(result.length)
+				return result
+			return false;
+		}
+	}
+});
+
 servicesModule.service('playlistService', function() {
 	var _emptyPlaylist = true;
 	var _playlist = [];
@@ -92,7 +104,7 @@ servicesModule.service('playlistService', function() {
 	}
 });
 
-servicesModule.service('netService', function($http, partyService, playlistService, optionsService) {
+servicesModule.service('netService', function($http, partyService, playlistService, optionsService, cacheService) {
 	return {
 		createParty: function() {
 			return $http.post('https://api.partyshark.tk/parties', {
@@ -188,6 +200,13 @@ servicesModule.service('netService', function($http, partyService, playlistServi
                 }, function(response) {
                     return false;
                 });
+		},
+		getSong: function(songCode) {
+			//check cache first, if not in there, fetch and add to cache
+			var song = isSongCached(songCode);
+			if(song)
+				return song;
+			//Fetch from server
 		},
 		sendContact: function(contactObject) {
 			return true;
