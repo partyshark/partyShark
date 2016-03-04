@@ -1,7 +1,7 @@
 var servicesModule = angular.module('servicesModule',[]);
 
 servicesModule.service('partyService', function(){
-    var _partyCode = "",
+    var _partyCode = "12345678",
     	_adminCode = "",
     	_userName = "",
     	_playerName = "",
@@ -230,7 +230,7 @@ servicesModule.service('netService', function($http, partyService, playlistServi
                 }, function(response) {
                     return false;
                 });
-		}
+		},
 		sendContact: function(contactObject) {
 			return true;
 		}	

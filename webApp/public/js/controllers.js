@@ -97,12 +97,18 @@ controllersModule.controller('playlistController', function($scope, $rootScope, 
     $scope.playlist = playlistService.getPlaylist();
 });
 
-controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService) {
+controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
-    $scope.submitSearch = function() {
-        $scope.searchResults = search($scope.searchParams);
-        $scope.searchParams = "";
-    }
+    netService.searchSongs($scope.searchParams)
+            .then(function(data) {
+                if(data)
+                    $scope.searchResults = data;
+                else
+                    alert("Could not connect to server, please try again.");
+            }, function(error) {
+                alert("Error fetching search results party.")
+            });
+
     $scope.addSong = function(id) {
         if(playlistService.addSong(id)) {
             $location.path('/'+partyService.getPartyCode()+'/playlist');
