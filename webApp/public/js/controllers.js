@@ -52,11 +52,12 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     	optionsService.setMaxQueueSize($scope.maxQueue);
 
     	//Make call to server to start party, on success, obtain party code and redirect
-        netService.getParty($scope.partyCode)
+        netService.createParty()
             .then(function(data) {
                 if(data)
+                    alert(data);
                     //Set party options once party is created
-                    netService.updatePartySettings()
+                    /*netService.updatePartySettings()
                         .then(function(data) {
                             if(data)
                                 $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -64,7 +65,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                                 alert("Could not connect to server, please try again.");
                         }, function(error) {
                             alert("Error updating settings party.")
-                        });
+                        });*/
                 else
                     alert("Could not connect to server, please try again.");
             }, function(error) {
@@ -76,6 +77,22 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 
 controllersModule.controller('playlistController', function($scope, $rootScope, playlistService, partyService, netService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
+    //$scope.isPlayer = (partyService.getPlayerName() == partyService.getUserName()) ? true : false;
+    $scope.isPlayer = true;
+
+    DZ.init({
+            appId  : '174261',
+            channelUrl : 'https://www.partyshark.tk/channel.html',
+            player : {
+            onload : function(){
+                    
+                }
+            }
+        });
+
+    $scope.playRadio = function() {
+        DZ.player.playRadio(37151);
+    }
 
     //if local partycode is empty, must have joined via link, fetch party from server
     if(partyService.getPartyCode() == "") {
@@ -86,7 +103,7 @@ controllersModule.controller('playlistController', function($scope, $rootScope, 
                 else
                     alert("Could not connect to server, please try again.");
             }, function(error) {
-                alert("Error joining party.")
+                alert("Error joining party.");
             });
     }
 

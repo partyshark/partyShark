@@ -13,6 +13,9 @@ servicesModule.service('partyService', function(){
     	getPartyCode: function() {
     		return _partyCode;
     	},
+        getPlayerName: function() {
+            return _playerName;
+        },
     	setPartyCode: function(partyCode) {
     		_partyCode = partyCode;
     		return true;
@@ -46,7 +49,7 @@ servicesModule.service('optionsService', function() {
 	var _numParticipants = 10,
 		_maxQueueSize = 50,
 		_virtualDj = false,
-		_defaultGenre = "rock",
+		_defaultGenre = "hits",
 		_vetoRatio = 0.5;
 
 	return {
@@ -107,22 +110,20 @@ servicesModule.service('playlistService', function() {
 servicesModule.service('netService', function($http, partyService, playlistService, optionsService, cacheService) {
 	return {
 		createParty: function() {
-			return $http.post('https://api.partyshark.tk/parties', {
+			return $http.post('http://nreid26.xyz:3000/parties', {
 			})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                    	partyService.setParty(response.data);
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                    alert(JSON.stringify(response));
+                    partyService.setParty(response.data);
+                    return true;
                 }, function(response) {
+                    alert(response.what);
+                    alert(response.why);
                     return false;
                 });
 		},
 		getParty: function(partyCode) {
-            return $http.get('https://api.partyshark.tk/parties/'+partyCode)
+            return $http.get('http://nreid26.xyz:3000/parties/'+partyCode, {headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
                     	partyService.setParty(response.data);
@@ -142,7 +143,8 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		getPlaylist: function(partyCode) {
-			return $http.get('https://api.partyshark.tk/parties/'+partyService.getPartyCode()+'/playlist')
+			return $http.get('http://nreid26.xyz:3000/parties/'+partyService.getPartyCode()+'/playlist', {
+                        headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
                     	playlistService.setPlaylist(response.data.values);
@@ -156,9 +158,10 @@ servicesModule.service('netService', function($http, partyService, playlistServi
                 });
 		},
 		createPlaythrough: function(songId) {
-			return $http.post('https://api.partyshark.tk/parties', {
+			return $http.post('http://nreid26.xyz:3000/parties', {
 				"song": songId
-			})
+			}, {
+                        headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
                         return true;
@@ -183,15 +186,17 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		updatePartySettings: function(partyCode) {
-			return $http.put('https://api.partyshark.tk/parties/'+partyService.getPartyCode()+'/settings', {
+			return $http.put('http://nreid26.xyz:3000/parties/'+partyService.getPartyCode()+'/settings', {
 				"virtual_dj": optionsService.getVirtualDj(),
   				"default_genre": optionsService.getDefaultGenre(),
   				"user_cap": optionsService.getNumParticipants(),
   				"playthrough_cap": optionsService.getMaxQueueSize(),
   				"veto_ratio": optionsService.getVetoRatio()
-			})
+			}, {
+                        headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
+                        alert("X-User-Code: "+response.headers(["X-User-Code"]));
                         return true;
                     } else {
                         return false;
@@ -206,7 +211,8 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 			if(song)
 				return song;
 			else
-				return $http.get('https://api.partyshark.tk/songs/'+songCode)
+				return $http.get('http://nreid26.xyz:3000/songs/'+songCode, {
+                        headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
                     	return response.data;
@@ -219,7 +225,8 @@ servicesModule.service('netService', function($http, partyService, playlistServi
                 });
 		},
 		searchSongs: function(query) {
-			return $http.get('https://api.partyshark.tk/songs?'+query)
+			return $http.get('http://nreid26.xyz:3000/songs?'+query, {
+                        headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     if (typeof response.data === 'object') {
                     	return response.data;

@@ -7,3 +7,7 @@ directivesModule.directive('fetchPlaylist', ['playlistService', function(playlis
         
     }
  }]);
+
+directivesModule.directive('loadPlayer', function() {
+	
+});

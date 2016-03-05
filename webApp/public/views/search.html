@@ -19,16 +19,16 @@
                     <table class="table table-condensed table-hover">
                         <thead>
                             <tr>
-                                <th>Song</th>
+                                <th>Title</th>
                                 <th>Artist</th>
-                                <th>Album</th>
+                                <th>Year</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="song in searchResults" ng-click="addSong(song.id);">
-                                <td>{{song.name}}</td>
+                            <tr ng-repeat="song in searchResults" ng-click="addSong(song.code);">
+                                <td>{{song.title}}</td>
                                 <td>{{song.artist}}</td>
-                                <td>{{song.album}}</td>
+                                <td>{{song.year}}</td>
                             </tr>
                         </tbody>
                     </table>

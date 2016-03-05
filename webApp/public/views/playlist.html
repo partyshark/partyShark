@@ -8,6 +8,19 @@
 				</div>
 			</section>
 		</div>
+        <div ng-show="isPlayer">
+            <section>
+                <div class="row" style="height:400px;overflow:auto;">
+                    <div class="container">
+
+                        <h3>You're the player! Custom player should go here eventually</h3>
+                        <button type="button" ng-click="playRadio()">Play Radio</button>
+                        <div id="dz-root"></div>
+                        <div id="player"<<div>
+                    </div>
+                </div>
+            </section>
+        </div>
         <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
            <body class="index">
     <section id="nowplaying">
