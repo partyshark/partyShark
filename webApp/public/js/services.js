@@ -1,7 +1,7 @@
 var servicesModule = angular.module('servicesModule',[]);
 
 servicesModule.service('partyService', function(){
-    var _partyCode = "12345678",
+    var _partyCode = "",
     	_adminCode = "",
     	_userName = "",
     	_playerName = "",

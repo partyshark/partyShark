@@ -93,9 +93,10 @@ controllersModule.controller('playlistController', function($scope, $rootScope, 
     //fetch existing playlist from server
     netService.getPlaylist($scope.partyCode)
             .then(function(data) {
-                if(data)
+                if(data) {
                     $scope.emptyPlaylist = playlistService.isEmpty();
                     $scope.playlist = playlistService.getPlaylist();
+                }
                 else
                     alert("Could not connect to server, please try again.");
             }, function(error) {
