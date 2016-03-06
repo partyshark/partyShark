@@ -1,4 +1,4 @@
-@import url("//fonts.googleapis.com/css?family=Lato:400,700,400italic");
+
 html
 {
 	font-family: sans-serif;
@@ -3795,7 +3795,6 @@ tbody.collapse.in
 	background-color: transparent;
 	background-image: none;
 	cursor: not-allowed;
-	filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 	text-decoration: none;
 }
 .open>.dropdown-menu
@@ -6685,7 +6684,6 @@ button.close
 	background-image: -webkit-gradient(linear, left top, right top, from(rgba(0,0,0,0.5)), to(rgba(0,0,0,0.0001)));
 	background-image: -webkit-linear-gradient(left, rgba(0,0,0,0.5) 0, rgba(0,0,0,0.0001) 100%);
 	background-repeat: repeat-x;
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80000000', endColorstr='#00000000', GradientType=1);
 }
 .carousel-control.right
 {
@@ -6694,7 +6692,6 @@ button.close
 	background-image: -webkit-gradient(linear, left top, right top, from(rgba(0,0,0,0.0001)), to(rgba(0,0,0,0.5)));
 	background-image: -webkit-linear-gradient(left, rgba(0,0,0,0.0001) 0, rgba(0,0,0,0.5) 100%);
 	background-repeat: repeat-x;
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#80000000', GradientType=1);
 	left: auto;
 	right: 0;
 }

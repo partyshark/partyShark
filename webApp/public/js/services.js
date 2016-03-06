@@ -1,3 +1,5 @@
+var serverAddress = 'http://nreid26.xyz:3000';
+
 var servicesModule = angular.module('servicesModule',[]);
 
 servicesModule.service('partyService', function(){
@@ -38,6 +40,7 @@ servicesModule.service('partyService', function(){
     	},
     	setParty: function(partyObject) {
     		_partyCode = partyObject.code;
+    		_userName = partyObject.
             _adminCode = partyObject.admin_code;
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
@@ -107,33 +110,25 @@ servicesModule.service('playlistService', function() {
 	}
 });
 
-servicesModule.service('netService', function($http, partyService, playlistService, optionsService, cacheService) {
+servicesModule.service('netService', function($http, $q, partyService, playlistService, optionsService, cacheService) {
 	return {
 		createParty: function() {
-			return $http.post('http://nreid26.xyz:3000/parties', {
+			return $http.post(serverAddress+'/parties', {
 			})
-                .then(function(response) {
-                    alert(JSON.stringify(response));
+                .then(function(response, headers) {
                     partyService.setParty(response.data);
-                    return true;
+                    partyService.setUserName(response.headers(['x-set-user-code']));
+                    return response;
                 }, function(response) {
-                    alert(response.what);
-                    alert(response.why);
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		getParty: function(partyCode) {
             return $http.get('http://nreid26.xyz:3000/parties/'+partyCode, {headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                    	partyService.setParty(response.data);
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                    partyService.setParty(response.data);
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
         },
 		requestPlayer: function(partyCode, playerTransferCode) {
@@ -143,34 +138,24 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		getPlaylist: function(partyCode) {
-			return $http.get('http://nreid26.xyz:3000/parties/'+partyService.getPartyCode()+'/playlist', {
-                        headers: {'X-User-Code': partyService.getUserName()}})
+			return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
+                        headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
                     	playlistService.setPlaylist(response.data.values);
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                        return response;
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		createPlaythrough: function(songId) {
-			return $http.post('http://nreid26.xyz:3000/parties', {
+			return $http.post(serverAddress+'/parties', {
 				"song": songId
 			}, {
                         headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                        return response;
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		vetoPlaythrough: function(partyCode, playthroughCode) {
@@ -186,24 +171,17 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 
 		},
 		updatePartySettings: function(partyCode) {
-			return $http.put('http://nreid26.xyz:3000/parties/'+partyService.getPartyCode()+'/settings', {
+			return $http.put(serverAddress+'/parties/'+partyService.getPartyCode()+'/settings', {
 				"virtual_dj": optionsService.getVirtualDj(),
   				"default_genre": optionsService.getDefaultGenre(),
   				"user_cap": optionsService.getNumParticipants(),
   				"playthrough_cap": optionsService.getMaxQueueSize(),
   				"veto_ratio": optionsService.getVetoRatio()
-			}, {
-                        headers: {'X-User-Code': partyService.getUserName()}})
+			}, {headers: {'X-USER-CODE': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                        alert("X-User-Code: "+response.headers(["X-User-Code"]));
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                        return response;
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		getSong: function(songCode) {
@@ -214,28 +192,18 @@ servicesModule.service('netService', function($http, partyService, playlistServi
 				return $http.get('http://nreid26.xyz:3000/songs/'+songCode, {
                         headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                    	return response.data;
-                    } else {
-                        return false;
-                    }
-
+                    	return response;
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		searchSongs: function(query) {
 			return $http.get('http://nreid26.xyz:3000/songs?'+query, {
                         headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
-                    if (typeof response.data === 'object') {
-                    	return response.data;
-                    } else {
-                        return false;
-                    }
-
+                    	return response;
                 }, function(response) {
-                    return false;
+                    return $q.reject(response);
                 });
 		},
 		sendContact: function(contactObject) {

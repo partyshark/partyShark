@@ -54,22 +54,25 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     	//Make call to server to start party, on success, obtain party code and redirect
         netService.createParty()
             .then(function(data) {
-                if(data)
-                    alert(data);
                     //Set party options once party is created
-                    /*netService.updatePartySettings()
+                    netService.updatePartySettings()
                         .then(function(data) {
-                            if(data)
-                                $location.path('/'+partyService.getPartyCode()+'/playlist');
-                            else
-                                alert("Could not connect to server, please try again.");
+                            $location.path('/'+partyService.getPartyCode()+'/playlist');
                         }, function(error) {
-                            alert("Error updating settings party.")
-                        });*/
-                else
-                    alert("Could not connect to server, please try again.");
+                            if(error.what) {
+                                console.log(error.what);
+                                console.log(error.why);
+                            }
+                            else
+                                console.log("Unable to contact server.");
+                            console.log("Error setting party settings.");
+                        });
             }, function(error) {
-                alert("Error creating party.")
+                console.log(error.what);
+                console.log(error.why);
+                console.log("Unable to contact server.");
+                console.log("Error creating party.");
+
             });
         
     }
