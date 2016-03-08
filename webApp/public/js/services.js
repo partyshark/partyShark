@@ -115,8 +115,6 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.post(serverAddress+'/parties', {
 			})
                 .then(function(response, headers) {
-                	alert(JSON.stringify(response));
-                	alert(response.headers(['x-set-user-code']));
                     partyService.setParty(response.data);
                     partyService.setUserName(response.headers(['x-set-user-code']));
                     return response;
@@ -152,7 +150,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.post(serverAddress+'/parties', {
 				"song": songId
 			}, {
-                        headers: {'X-User-Code': partyService.getUserName()}})
+                        headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                         return response;
                 }, function(response) {
@@ -176,7 +174,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 				 method: 'PUT',
 				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',
 				 headers: {
-				   'X-User-Code': partyService.getUserName()
+				   'x-user-code': partyService.getUserName()
 				 },
 				 data: {
 					"virtual_dj": optionsService.getVirtualDj(),
@@ -199,7 +197,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 				return song;
 			else
 				return $http.get(serverAddress+'/songs/'+songCode, {
-                        headers: {'X-User-Code': partyService.getUserName()}})
+                        headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                     	return response;
                 }, function(response) {
@@ -207,16 +205,46 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 });
 		},
 		searchSongs: function(query) {
-			return $http.get(serverAddress+'/songs?'+query, {
-                        headers: {'X-User-Code': partyService.getUserName()}})
+			var resultsArray = [];
+
+			return $http.get(serverAddress+'/songs?search='+query, {
+                        headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    	return response;
+                	alert(JSON.stringify(response));
+                	//Find index of each property
+                	var properties = response.data.properties,
+                		codeIndex = properties.indexOf("code"),
+                		yearIndex = properties.indexOf("year"),
+                		titleIndex = properties.indexOf("title"),
+                		durationIndex = properties.indexOf("duration"),
+                		artistIndex = properties.indexOf("artist");
+            		
+            		//Populate search results array with search objects
+                	for (var result in response.data.values) {
+                		resultsArray.push({
+                			"code": result[codeIndex],
+                			"title": result[titleIndex],
+                			"artist": result[artistIndex],
+                			"year": result[yearIndex],
+                			"duration": result[durationIndex]
+                		});
+                	}
+                    	return resultsArray;
                 }, function(response) {
                     return $q.reject(response);
                 });
 		},
 		sendContact: function(contactObject) {
 			return true;
+		},
+		createUser: function() {
+			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/users', {})
+			.then(function(response) {
+				partyService.setUserName(response.headers(['x-set-user-code']));
+                return response;
+            }, function(response) {
+            	return $q.reject(response);
+            });
 		}	
 	}
 });

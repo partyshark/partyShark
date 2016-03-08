@@ -12,6 +12,11 @@ var express = require('express'),
 var ONE_DAY = 86400000,
     ONE_YEAR = 31536000000;
 
+app.all('*', function(req, res, next) {
+    console.log(req.params);
+    next();
+});
+
 app.use(function(req, res, next) {
   if(!req.secure) {
     return res.redirect(['https://', req.get('Host'), req.url].join(''));
