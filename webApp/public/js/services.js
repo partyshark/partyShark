@@ -7,6 +7,7 @@ servicesModule.service('partyService', function(){
     	_adminCode = "",
     	_userName = "",
     	_playerName = "",
+    	_displayName = "",
     	_isPlaying = false;
     return {
     	getUserName: function() {
@@ -17,6 +18,13 @@ servicesModule.service('partyService', function(){
     	},
         getPlayerName: function() {
             return _playerName;
+        },
+        getDisplayName: function() {
+        	return _displayName;
+        },
+        setDisplayName: function(displayName) {
+        	_displayName = displayName;
+        	return true;
         },
     	setPartyCode: function(partyCode) {
     		_partyCode = partyCode;
@@ -43,6 +51,7 @@ servicesModule.service('partyService', function(){
             _adminCode = partyObject.admin_code;
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
+            _displayName = _playerName;
     	}
     }
 });
@@ -147,8 +156,8 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 });
 		},
 		createPlaythrough: function(songId) {
-			return $http.post(serverAddress+'/parties', {
-				"song": songId
+			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
+				"song_code": songId
 			}, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
@@ -210,7 +219,6 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.get(serverAddress+'/songs?search='+query, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                	alert(JSON.stringify(response));
                 	//Find index of each property
                 	var properties = response.data.properties,
                 		codeIndex = properties.indexOf("code"),
@@ -218,16 +226,20 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 		titleIndex = properties.indexOf("title"),
                 		durationIndex = properties.indexOf("duration"),
                 		artistIndex = properties.indexOf("artist");
+
             		
             		//Populate search results array with search objects
-                	for (var result in response.data.values) {
-                		resultsArray.push({
-                			"code": result[codeIndex],
-                			"title": result[titleIndex],
-                			"artist": result[artistIndex],
-                			"year": result[yearIndex],
-                			"duration": result[durationIndex]
-                		});
+            		var values = response.data.values;
+                	for (var i = 0; i<values.length; i++) {
+                		var item = {
+                			"code": values[i][codeIndex],
+                			"title": values[i][titleIndex],
+                			"artist": values[i][artistIndex],
+                			"year": values[i][yearIndex],
+                			"duration": values[i][durationIndex]
+                		}
+                		//console.log(item);
+                		resultsArray.push(item);
                 	}
                     	return resultsArray;
                 }, function(response) {
@@ -241,6 +253,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/users', {})
 			.then(function(response) {
 				partyService.setUserName(response.headers(['x-set-user-code']));
+				partyService.setDisplayName(response.data.username);
                 return response;
             }, function(response) {
             	return $q.reject(response);

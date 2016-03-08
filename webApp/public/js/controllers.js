@@ -28,7 +28,7 @@ controllersModule.controller('mainController', function($scope, $location, $root
             "phone": $scope.contactPhone,
             "message": $scope.contactMessage
         });
-        alert("Message send triggered.");
+        $.notify("Server is not accepting messages yet", "info");
     }
 });
 
@@ -91,6 +91,13 @@ controllersModule.controller('playlistController', function($scope, $routeParams
     //$scope.isPlayer = (partyService.getPlayerName() == partyService.getUserName()) ? true : false;
     $scope.isPlayer = true;
 
+    //Check for flash
+    //if(swfobject.hasFlashPlayerVersion("8.0")) {
+
+    //}
+    //else {
+    //    $.notify("Flash Player is needed.", "error");
+    //}
     DZ.init({
             appId  : '174261',
             channelUrl : 'https://www.partyshark.tk/channel.html',
@@ -129,6 +136,7 @@ controllersModule.controller('playlistController', function($scope, $routeParams
             .then(function(data) {
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
+                $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
             }, function(error) {
                 console.log(error);
                 $.notify("Could not get playlist.", "error");
@@ -155,10 +163,7 @@ controllersModule.controller('searchController', function($scope, $location, $ro
     $scope.addSong = function(songCode) {
         netService.createPlaythrough(songCode)
             .then(function(data) {
-                if(data)
-                    $location.path('/'+partyService.getPartyCode()+'/playlist');
-                else
-                    alert("Could not connect to server, please try again.");
+                $location.path('/'+partyService.getPartyCode()+'/playlist');
             }, function(error) {
                 alert("Error fetching search results party.")
             });
