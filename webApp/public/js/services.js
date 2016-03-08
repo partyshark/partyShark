@@ -116,15 +116,17 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.post(serverAddress+'/parties', {
 			})
                 .then(function(response, headers) {
+                	alert(response.headers(['x-set-user-code']));
                     partyService.setParty(response.data);
                     partyService.setUserName(response.headers(['x-set-user-code']));
                     return response;
                 }, function(response) {
+                	alert()
                     return $q.reject(response);
                 });
 		},
 		getParty: function(partyCode) {
-            return $http.get('http://nreid26.xyz:3000/parties/'+partyCode, {headers: {'X-User-Code': partyService.getUserName()}})
+            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                     partyService.setParty(response.data);
                 }, function(response) {
@@ -170,14 +172,23 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 		getPartySettings: function(partyCode) {
 
 		},
-		updatePartySettings: function(partyCode) {
-			return $http.put(serverAddress+'/parties/'+partyService.getPartyCode()+'/settings', {
-				"virtual_dj": optionsService.getVirtualDj(),
-  				"default_genre": optionsService.getDefaultGenre(),
-  				"user_cap": optionsService.getNumParticipants(),
-  				"playthrough_cap": optionsService.getMaxQueueSize(),
-  				"veto_ratio": optionsService.getVetoRatio()
-			}, {headers: {'X-USER-CODE': partyService.getUserName()}})
+		updatePartySettings: function() {
+			alert(partyService.getUserName());
+			var req = {
+				 method: 'PUT',
+				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',
+				 headers: {
+				   'X-User-Code': partyService.getUserName()
+				 },
+				 data: {
+					"virtual_dj": optionsService.getVirtualDj(),
+	  				"default_genre": optionsService.getDefaultGenre(),
+	  				"user_cap": optionsService.getNumParticipants(),
+	  				"playthrough_cap": optionsService.getMaxQueueSize(),
+	  				"veto_ratio": optionsService.getVetoRatio()
+				}
+			}
+			return $http(req)
                 .then(function(response) {
                         return response;
                 }, function(response) {
@@ -189,7 +200,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			if(song)
 				return song;
 			else
-				return $http.get('http://nreid26.xyz:3000/songs/'+songCode, {
+				return $http.get(serverAddress+'/songs/'+songCode, {
                         headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     	return response;
@@ -198,7 +209,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 });
 		},
 		searchSongs: function(query) {
-			return $http.get('http://nreid26.xyz:3000/songs?'+query, {
+			return $http.get(serverAddress+'/songs?'+query, {
                         headers: {'X-User-Code': partyService.getUserName()}})
                 .then(function(response) {
                     	return response;

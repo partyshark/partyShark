@@ -8,13 +8,14 @@ controllersModule.controller('mainController', function($scope, $location, $root
         $location.path('/'+partyService.getPartyCode()+'/search');
     }
     $scope.exit = function() {
-    	if(leaveParty()) {
+        //replace with exit party net service call
+    	if(true) {
             $location.path('/');
             $scope.topButtons.splice(0,$scope.topButtons.length);
-            $rootScope.exitNotification = true;
+            $.notify("Left party sucessfully!", "success");
         }
         else {
-            //Handle error for improper logout here
+            $.notify("Error leaving party, server will fix this eventually...", "error");
         }
     },
     $scope.sendContact = function() {
@@ -37,7 +38,7 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
                 else
                     alert("Could not connect to server, please try again.");
             }, function(error) {
-                alert("Error joining party.")
+                alert("Error joining party.");
             });
     },
     $scope.backHome = function() {
@@ -59,20 +60,12 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                         .then(function(data) {
                             $location.path('/'+partyService.getPartyCode()+'/playlist');
                         }, function(error) {
-                            if(error.what) {
-                                console.log(error.what);
-                                console.log(error.why);
-                            }
-                            else
-                                console.log("Unable to contact server.");
-                            console.log("Error setting party settings.");
+                            console.log(error);
+                            $.notify("Error setting party settings.", "error");
                         });
             }, function(error) {
-                console.log(error.what);
-                console.log(error.why);
-                console.log("Unable to contact server.");
-                console.log("Error creating party.");
-
+                console.log(error);
+                $.notify("Error creating party.", "error");
             });
         
     }
