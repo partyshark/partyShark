@@ -89,16 +89,11 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 controllersModule.controller('playlistController', function($scope, $routeParams, $location, $rootScope, playlistService, partyService, netService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
     //$scope.isPlayer = (partyService.getPlayerName() == partyService.getUserName()) ? true : false;
-    $scope.isPlayer = true;
-
+    $scope.isPlayer = false;
+/*
     //Check for flash
-    //if(swfobject.hasFlashPlayerVersion("8.0")) {
-
-    //}
-    //else {
-    //    $.notify("Flash Player is needed.", "error");
-    //}
-    DZ.init({
+    if(swfobject.hasFlashPlayerVersion("8.0")) {
+        DZ.init({
             appId  : '174261',
             channelUrl : 'https://www.partyshark.tk/channel.html',
             player : {
@@ -107,19 +102,25 @@ controllersModule.controller('playlistController', function($scope, $routeParams
                 }
             }
         });
-
+    }
+    else {
+        $.notify("Flash Player is needed to initialize player.", "error");
+    }
+    
+*/
     $scope.playRadio = function() {
         DZ.player.playRadio(37151);
     }
 
     //if local partycode is empty, must have joined via link, fetch party from server
-    if(partyService.getPartyCode() == "") {
+    if(!partyService.isInParty()) {
         partyService.setPartyCode($routeParams.partyCode);
         netService.createUser(partyService.getPartyCode())
             .then(function(data) {
                 netService.getParty(partyService.getPartyCode())
                     .then(function(data) {
-                        $location.path('/'+partyService.getPartyCode()+'/playlist');
+                        $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
+                        fetchPlaylist();
                     }, function(error) {
                         console.log(error);
                     $.notify("Could not join party.", "error");
@@ -131,19 +132,20 @@ controllersModule.controller('playlistController', function($scope, $routeParams
         
     }
     else {
+        fetchPlaylist();
+    }
+
+    function fetchPlaylist() {
         //fetch existing playlist from server
-        netService.getPlaylist($scope.partyCode)
+        netService.getPlaylist(partyService.getPartyCode())
             .then(function(data) {
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
-                $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
             }, function(error) {
                 console.log(error);
                 $.notify("Could not get playlist.", "error");
             });
-    }
-
-    
+    }  
 });
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {

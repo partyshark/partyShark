@@ -8,8 +8,12 @@ servicesModule.service('partyService', function(){
     	_userName = "",
     	_playerName = "",
     	_displayName = "",
-    	_isPlaying = false;
+    	_isPlaying = false,
+        _isInParty = false;
     return {
+        isInParty: function() {
+            return _isInParty;
+        },
     	getUserName: function() {
     		return _userName;
     	},
@@ -27,6 +31,7 @@ servicesModule.service('partyService', function(){
         	return true;
         },
     	setPartyCode: function(partyCode) {
+            _isInParty = true;
     		_partyCode = partyCode;
     		return true;
     	},
@@ -51,7 +56,7 @@ servicesModule.service('partyService', function(){
             _adminCode = partyObject.admin_code;
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
-            _displayName = _playerName;
+            _isInParty = true;
     	}
     }
 });
@@ -94,11 +99,14 @@ servicesModule.service('cacheService', function() {
 	_songCache = [];
 	return {
 		isSongCached: function(songCode) {
-			var result = $.grep(myArray, function(e){ return e.code == songCode; });
+			var result = $.grep(_songCache, function(e){ return e.code == songCode; });
 			if(result.length)
 				return result
 			return false;
-		}
+		},
+        addSongCache: function(song) {
+            _songCache.push(song);
+        }
 	}
 });
 
@@ -114,6 +122,11 @@ servicesModule.service('playlistService', function() {
 		},
 		setPlaylist: function(playlist) {
 			_playlist = playlist;
+            if(playlist.length) {
+               _emptyPlaylist = false;
+                return true; 
+            }
+            return false;
 		}
 	}
 });
@@ -146,10 +159,41 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 
 		},
 		getPlaylist: function(partyCode) {
+            var resultsArray = [];
 			return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    	playlistService.setPlaylist(response.data.values);
+                    //Find index of each property
+                    var properties = response.data.properties,
+                        codeIndex = properties.indexOf("code"),
+                        song_codeIndex = properties.indexOf("song_code"),
+                        positionIndex = properties.indexOf("position"),
+                        upvotesIndex = properties.indexOf("upvotes"),
+                        downvotesIndex = properties.indexOf("downvotes"),
+                        suggesterIndex = properties.indexOf("suggester"),
+                        voteIndex = properties.indexOf("vote"),
+                        completed_durationIndex = properties.indexOf("completedDuration"),
+                        creationTimeIndex = properties.indexOf("creation_time")
+
+                    
+                    //Populate search results array with search objects
+                    var values = response.data.values;
+                    for (var i = 0; i<values.length; i++) {
+                        var item = {
+                            "code": values[i][codeIndex],
+                            "song_code": values[i][song_codeIndex],
+                            "position": values[i][positionIndex],
+                            "upvotes": values[i][upvotesIndex],
+                            "downvotes": values[i][downvotesIndex],
+                            "suggester": values[i][suggesterIndex],
+                            "vote": values[i][voteIndex],
+                            "completed_duration": values[i][completed_durationIndex],
+                            "creation_time": values[i][creationTimeIndex]
+                        }
+                        //console.log(item);
+                        resultsArray.push(item);
+                    }
+                    	playlistService.setPlaylist(resultsArray);
                         return response;
                 }, function(response) {
                     return $q.reject(response);
@@ -208,6 +252,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 				return $http.get(serverAddress+'/songs/'+songCode, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
+                    console.log(response.data);
                     	return response;
                 }, function(response) {
                     return $q.reject(response);
