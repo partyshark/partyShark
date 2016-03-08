@@ -40,7 +40,6 @@ servicesModule.service('partyService', function(){
     	},
     	setParty: function(partyObject) {
     		_partyCode = partyObject.code;
-    		_userName = partyObject.
             _adminCode = partyObject.admin_code;
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
@@ -116,13 +115,13 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 			return $http.post(serverAddress+'/parties', {
 			})
                 .then(function(response, headers) {
+                	alert(JSON.stringify(response));
                 	alert(response.headers(['x-set-user-code']));
                     partyService.setParty(response.data);
                     partyService.setUserName(response.headers(['x-set-user-code']));
                     return response;
                 }, function(response) {
-                	alert()
-                    return $q.reject(response);
+                    return $q.reject(response.data);
                 });
 		},
 		getParty: function(partyCode) {
@@ -130,7 +129,7 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 .then(function(response) {
                     partyService.setParty(response.data);
                 }, function(response) {
-                    return $q.reject(response);
+                    return $q.reject(response.data);
                 });
         },
 		requestPlayer: function(partyCode, playerTransferCode) {
@@ -173,7 +172,6 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 
 		},
 		updatePartySettings: function() {
-			alert(partyService.getUserName());
 			var req = {
 				 method: 'PUT',
 				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',

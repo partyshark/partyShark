@@ -12,9 +12,14 @@ partyShark.config(function($routeProvider) {
             controller  : 'joinPartyController'
         })
 
-        .when('/options', {
+        .when('/:partyCode/options', {
             templateUrl : 'views/options.html',
             controller  : 'optionsController'
+        })
+
+        .when('/startParty', {
+            templateUrl : 'views/startParty.html',
+            controller  : 'startPartyController'
         })
 
         .when('/:partyCode/playlist', {

@@ -18,6 +18,9 @@ controllersModule.controller('mainController', function($scope, $location, $root
             $.notify("Error leaving party, server will fix this eventually...", "error");
         }
     },
+    $scope.options = function() {
+        $location.path('/'+partyService.getPartyCode()+'/options');
+    },
     $scope.sendContact = function() {
         netService.sendContact({
             "name": $scope.contactName,
@@ -33,12 +36,10 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
     $scope.joinParty = function() {
         netService.getParty($scope.partyCode)
             .then(function(data) {
-                if(data)
-                    $location.path('/'+$scope.partyCode+'/playlist');
-                else
-                    alert("Could not connect to server, please try again.");
+                $location.path('/'+$scope.partyCode+'/playlist');
             }, function(error) {
-                alert("Error joining party.");
+                console.log(error);
+                $.notify("Error joining party.", "error");
             });
     },
     $scope.backHome = function() {
@@ -46,13 +47,11 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
-    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+controllersModule.controller('startPartyController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
+    $rootScope.topButtons = [];
     $scope.startParty = function() {
     	optionsService.setNumParticipants($scope.numParticipants);
     	optionsService.setMaxQueueSize($scope.maxQueue);
-
-    	//Make call to server to start party, on success, obtain party code and redirect
         netService.createParty()
             .then(function(data) {
                     //Set party options once party is created
@@ -68,6 +67,22 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                 $.notify("Error creating party.", "error");
             });
         
+    },
+    $scope.backHome = function() {
+        $location.path('/');
+    }
+});
+
+controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
+    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+    $scope.update = function() {
+        netService.updatePartySettings()
+            .then(function(data) {
+                $.notify("Party settings changed!", "success");
+            }, function(error) {
+                console.log(error);
+                $.notify("Error updating party settings.", "error");
+            });
     }
 });
 
