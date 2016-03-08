@@ -90,7 +90,7 @@ controllersModule.controller('playlistController', function($scope, $routeParams
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
     //$scope.isPlayer = (partyService.getPlayerName() == partyService.getUserName()) ? true : false;
     $scope.isPlayer = false;
-/*
+
     //Check for flash
     if(swfobject.hasFlashPlayerVersion("8.0")) {
         DZ.init({
@@ -105,11 +105,6 @@ controllersModule.controller('playlistController', function($scope, $routeParams
     }
     else {
         $.notify("Flash Player is needed to initialize player.", "error");
-    }
-    
-*/
-    $scope.playRadio = function() {
-        DZ.player.playRadio(37151);
     }
 
     //if local partycode is empty, must have joined via link, fetch party from server
@@ -141,11 +136,44 @@ controllersModule.controller('playlistController', function($scope, $routeParams
             .then(function(data) {
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
+                populatePlaylist();
             }, function(error) {
                 console.log(error);
                 $.notify("Could not get playlist.", "error");
             });
     }  
+
+    function populatePlaylist() {
+        var playlist = playlistService.getPlaylist(),
+            i;
+        playlist.forEach(function(item) {
+            netService.getSong(item.song_code)
+                .then(function(data) {
+                    item["title"] = data.title;
+                    item["artist"] = data.artist;
+                    item["year"] = data.year;
+                    item["duration"] = data.duration;
+                }, function(error) {
+                    console.log("Could not get song details for songCode: "+playlist[i].song_code);
+                }); 
+        }) 
+        $scope.playlist = playlistService.getPlaylist();
+    }
+
+    $scope.playRadio = function() {
+        DZ.player.playRadio(37151);
+    },
+    $scope.votePlaythrough = function(playthroughCode, vote) {
+        netService.updateCurrentPlaythrough(partyService.getPartyCode, playthroughCode, vote)
+            .then(function(response) {
+                console.log(response);
+                $.notify("Vote was added!", "success");
+            },
+            function(error) {
+                console.log(error);
+                $.notify("Vote was not added to the playthrough.", "error");
+            });
+    }
 });
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {

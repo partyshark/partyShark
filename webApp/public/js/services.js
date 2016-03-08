@@ -188,9 +188,13 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                             "suggester": values[i][suggesterIndex],
                             "vote": values[i][voteIndex],
                             "completed_duration": values[i][completed_durationIndex],
-                            "creation_time": values[i][creationTimeIndex]
+                            "creation_time": values[i][creationTimeIndex],
+                            "year": "",
+                            "duration": "",
+                            "title": "",
+                            "artist": "",
+                            "albumSource": ""
                         }
-                        //console.log(item);
                         resultsArray.push(item);
                     }
                     	playlistService.setPlaylist(resultsArray);
@@ -216,8 +220,23 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
 		getPlaythrough: function(partyCode, playthroughCode) {
 
 		},
-		updateCurrentPlaythrough: function(partyCode, playthroughCode) {
-
+		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote) {
+            var req = {
+                 method: 'PUT',
+                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
+                 headers: {
+                   'x-user-code': partyService.getUserName()
+                 },
+                 data: {
+                    "vote": vote
+                }
+            }
+            return $http(req)
+                .then(function(response) {
+                        return response.data;
+                }, function(error) {
+                    return $q.reject(error);
+                });
 		},
 		getPartySettings: function(partyCode) {
 
@@ -245,15 +264,14 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 });
 		},
 		getSong: function(songCode) {
-			var song = isSongCached(songCode);
-			if(song)
-				return song;
-			else
+			//var song = isSongCached(songCode);
+			//if(song)
+				//return song;
+			//else
 				return $http.get(serverAddress+'/songs/'+songCode, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    console.log(response.data);
-                    	return response;
+                    	return response.data;
                 }, function(response) {
                     return $q.reject(response);
                 });
