@@ -17,12 +17,13 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-app.use(function(req, res, next) {
+//Uncomment to force https redirect
+/*app.use(function(req, res, next) {
   if(!req.secure) {
     return res.redirect(['https://', req.get('Host'), req.url].join(''));
   }
   next();
-});
+});*/
 
 app.use(compression());
 

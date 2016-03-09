@@ -1,6 +1,7 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
 controllersModule.controller('mainController', function($scope, $location, $rootScope, $route, partyService, netService) {
+    $scope.isPlayer = false;
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
     }
@@ -9,18 +10,20 @@ controllersModule.controller('mainController', function($scope, $location, $root
     }
     $scope.exit = function() {
         //replace with exit party net service call
-    	if(true) {
-            $location.path('/');
-            $scope.topButtons.splice(0,$scope.topButtons.length);
-            $.notify("Left party sucessfully!", "success");
-        }
-        else {
-            $.notify("Error leaving party, server will fix this eventually...", "error");
-        }
-    },
+        netService.leaveParty()
+            .then(function(data) {
+                $location.path('/');
+                $scope.isPlayer = false;
+                $scope.topButtons.splice(0,$scope.topButtons.length);
+                $.notify("Left party sucessfully!", "success");
+            }, function(error) {
+                console.log(error);
+                $.notify("Error leaving party, server will fix this eventually...", "error");
+            });
+    }
     $scope.options = function() {
         $location.path('/'+partyService.getPartyCode()+'/options');
-    },
+    }
     $scope.sendContact = function() {
         netService.sendContact({
             "name": $scope.contactName,
@@ -32,14 +35,22 @@ controllersModule.controller('mainController', function($scope, $location, $root
     }
 });
 
-controllersModule.controller('joinPartyController', function($scope, $location, netService) {
+controllersModule.controller('joinPartyController', function($scope, $location, netService, partyService) {
     $scope.joinParty = function() {
-        netService.getParty($scope.partyCode)
+        partyService.setPartyCode($scope.partyCode);
+        netService.createUser(partyService.getPartyCode())
             .then(function(data) {
-                $location.path('/'+$scope.partyCode+'/playlist');
+                netService.getParty(partyService.getPartyCode())
+                    .then(function(data) {
+                        $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
+                        $location.path('/'+partyService.getPartyCode()+'/playlist');
+                    }, function(error) {
+                        console.log(error);
+                    $.notify("Could get party.", "error");
+                });
             }, function(error) {
                 console.log(error);
-                $.notify("Error joining party.", "error");
+                $.notify("Could not join party.", "error");
             });
     },
     $scope.backHome = function() {
@@ -57,7 +68,16 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
                     //Set party options once party is created
                     netService.updatePartySettings()
                         .then(function(data) {
-                            $location.path('/'+partyService.getPartyCode()+'/playlist');
+                            //Get user name
+                            netService.getDisplayName()
+                                .then(function(data) {
+                                    $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
+                                    $location.path('/'+partyService.getPartyCode()+'/playlist');
+                                }, function(error) {
+                                    console.log(error);
+                                    $.notify("Error retrieving user name.", "error");
+                                });
+
                         }, function(error) {
                             console.log(error);
                             $.notify("Error setting party settings.", "error");
@@ -86,25 +106,26 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $routeParams, $location, $rootScope, playlistService, partyService, netService) {
+controllersModule.controller('playlistController', function($scope, $filter, $routeParams, $location, $rootScope, playlistService, partyService, netService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
-    //$scope.isPlayer = (partyService.getPlayerName() == partyService.getUserName()) ? true : false;
-    $scope.isPlayer = false;
 
-    //Check for flash
-    if(swfobject.hasFlashPlayerVersion("8.0")) {
-        DZ.init({
-            appId  : '174261',
-            channelUrl : 'https://www.partyshark.tk/channel.html',
-            player : {
-            onload : function(){
-                    
+    $rootScope.isPlayer = partyService.isPlayer();
+    if($rootScope.isPlayer && !playlistService.isPlayerInitialized()) {
+        if(swfobject.hasFlashPlayerVersion("6.0")) {
+            DZ.init({
+                appId  : '174261',
+                channelUrl : 'https://www.partyshark.tk/channel.html',
+                player : {
+                onload : function(){
+                        playlistService.setPlayerInitialized();
+                        $.notify("Player loaded.", "success");
+                    }
                 }
-            }
-        });
-    }
-    else {
-        $.notify("Flash Player is needed to initialize player.", "error");
+            });
+        }
+        else {
+            $.notify("Flash Player is needed to initialize player.", "error");
+        }
     }
 
     //if local partycode is empty, must have joined via link, fetch party from server
@@ -127,6 +148,7 @@ controllersModule.controller('playlistController', function($scope, $routeParams
         
     }
     else {
+        console.log("fetch playlist");
         fetchPlaylist();
     }
 
@@ -137,6 +159,7 @@ controllersModule.controller('playlistController', function($scope, $routeParams
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
                 populatePlaylist();
+                //playthrough items with song info in scope.playlist
             }, function(error) {
                 console.log(error);
                 $.notify("Could not get playlist.", "error");
@@ -160,14 +183,19 @@ controllersModule.controller('playlistController', function($scope, $routeParams
         $scope.playlist = playlistService.getPlaylist();
     }
 
-    $scope.playRadio = function() {
-        DZ.player.playRadio(37151);
-    },
     $scope.votePlaythrough = function(playthroughCode, vote) {
         netService.updateCurrentPlaythrough(partyService.getPartyCode, playthroughCode, vote)
             .then(function(response) {
-                console.log(response);
                 $.notify("Vote was added!", "success");
+                playlistService.getPlaylist().findIndex(function(element, index, array) {
+                    if(element.code == playthroughCode) {
+                        element.upvotes = response.upvotes;
+                        element.downvotes = response.downvotes;
+                        element.position = response.position;
+                    }
+                });
+                $scope.playlist = playlistService.getPlaylist();
+                $scope.order = 'position';
             },
             function(error) {
                 console.log(error);
@@ -194,8 +222,20 @@ controllersModule.controller('searchController', function($scope, $location, $ro
         netService.createPlaythrough(songCode)
             .then(function(data) {
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
+                DZ.player.playTracks([data.data.song_code]);
             }, function(error) {
                 alert("Error fetching search results party.")
             });
     }
 });
+
+
+
+
+
+
+
+
+
+
+

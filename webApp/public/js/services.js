@@ -11,6 +11,9 @@ servicesModule.service('partyService', function(){
     	_isPlaying = false,
         _isInParty = false;
     return {
+        isPlayer: function() {
+            return (_displayName == _playerName);
+        },
         isInParty: function() {
             return _isInParty;
         },
@@ -101,7 +104,7 @@ servicesModule.service('cacheService', function() {
 		isSongCached: function(songCode) {
 			var result = $.grep(_songCache, function(e){ return e.code == songCode; });
 			if(result.length)
-				return result
+				return result;
 			return false;
 		},
         addSongCache: function(song) {
@@ -113,7 +116,15 @@ servicesModule.service('cacheService', function() {
 servicesModule.service('playlistService', function() {
 	var _emptyPlaylist = true;
 	var _playlist = [];
+    var _playerInitialized = false;
 	return {
+        setPlayerInitialized: function() {
+            _playerInitialized = true;
+            return true;
+        },
+        isPlayerInitialized: function() {
+            return _playerInitialized;
+        },
 		isEmpty: function() {
 			return _emptyPlaylist;
 		},
@@ -131,7 +142,7 @@ servicesModule.service('playlistService', function() {
 	}
 });
 
-servicesModule.service('netService', function($http, $q, partyService, playlistService, optionsService, cacheService) {
+servicesModule.service('netService', function($http, $q, partyService, cacheService, playlistService, optionsService, cacheService) {
 	return {
 		createParty: function() {
 			return $http.post(serverAddress+'/parties', {
@@ -264,13 +275,20 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
                 });
 		},
 		getSong: function(songCode) {
-			//var song = isSongCached(songCode);
-			//if(song)
-				//return song;
-			//else
+            /*var deferred = $q.defer();
+			var song = cacheService.isSongCached(songCode);
+			if(song) {
+                console.log("Retrieved song from cache.");
+                deferred.resolve(song);
+                return deferred.promise;
+            }
+			else*/
+                console.log("Retrieved song from server.");
 				return $http.get(serverAddress+'/songs/'+songCode, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
+                        cacheService.addSongCache(response.data);
+                        console.log
                     	return response.data;
                 }, function(response) {
                     return $q.reject(response);
@@ -321,7 +339,26 @@ servicesModule.service('netService', function($http, $q, partyService, playlistS
             }, function(response) {
             	return $q.reject(response);
             });
-		}	
+		},
+        getDisplayName: function() {
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
+                        headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    partyService.setDisplayName(response.data.username);
+                    return response.data;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        },
+        leaveParty: function() {
+            return $http.delete(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
+                        headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        }
 	}
 });
 

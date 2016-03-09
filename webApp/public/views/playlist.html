@@ -3,31 +3,18 @@
 			<section>
 				<div class="row" style="height:400px;overflow:auto;">
 					<div class="container">
-						<h3>Add songs to the playlist by selecting search from above</h3>
+						<h3>Playlist is empty! Add songs to the playlist by selecting search from above</h3>
 					</div>
 				</div>
 			</section>
 		</div>
-        <div ng-show="isPlayer">
-            <section>
-                <div class="row" style="height:400px;overflow:auto;">
-                    <div class="container">
-
-                        <h3>You're the player! Custom player should go here eventually</h3>
-                        <button type="button" ng-click="playRadio()">Play Radio</button>
-                        <div id="dz-root"></div>
-                        <div id="player"<<div>
-                    </div>
-                </div>
-            </section>
-        </div>
         <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
            <body class="index">
     <section id="nowplaying">
             <div class="row" style="height:400px;overflow:auto;">
 
-                            <div ng-repeat="playthrough in playlist">
-                                <div class='well well-sm'>
+                            <div ng-repeat="playthrough in playlist | orderBy:'position':false">
+                                <div class='well well-sm' ng-model="playthrough.position">
                                     <div class='media song'>
                                         <div class='media-left'>
                                              <img class='media-object' ng-src='https://s-media-cache-ak0.pinimg.com/236x/5d/ee/db/5deedb50cfb3e899f58cdd2885c40b4f.jpg' alt='' style="width: 96px;">
@@ -38,10 +25,10 @@
                                             <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
                                         </div>
                                         <div class="upvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-up fa-2x"></i></button>
+                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
                                         </div>
                                         <div class="downvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-down fa-2x"></i></button>
+                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-down fa-2x"></i></button>
                                         </div>  
                                     </div>
                                 </div>
