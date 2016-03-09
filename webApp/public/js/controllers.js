@@ -193,7 +193,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                 netService.getParty(partyService.getPartyCode())
                     .then(function(data) {
                         $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
-                        fetchPlaylist();
+                            fetchPlaylist();
                     }, function(error) {
                         console.log(error);
                     $.notify("Could not join party.", "error");
@@ -250,7 +250,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                     }
                 });
                 $scope.playlist = playlistService.getPlaylist();
-                $scope.order = 'position';
             },
             function(error) {
                 console.log(error);
