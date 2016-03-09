@@ -1,7 +1,19 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $location, $rootScope, $route, partyService, netService) {
+controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService) {
     $scope.isPlayer = false;
+
+    //set global route refresh wrapper
+    $scope.start = function() {
+      $scope.stop(); 
+      $scope.refresh = $interval(function() {
+            $route.reload();
+        }, 5000);
+    }
+    $scope.stop = function() {
+      $interval.cancel($scope.refresh);
+    }
+
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
     }
@@ -106,9 +118,16 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $filter, $routeParams, $location, $rootScope, playlistService, partyService, netService) {
+controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, netService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
+    //Update the playlist periodically to keep it up to date
+    var refresh = $interval(function(){$route.reload();}, 5000);
+    $scope.$on('$destroy', function() {
+      $interval.cancel(refresh);
+    });
+
+    //If player, load player and define event triggers
     $rootScope.isPlayer = partyService.isPlayer();
     if($rootScope.isPlayer && !playlistService.isPlayerInitialized()) {
         if(swfobject.hasFlashPlayerVersion("6.0")) {
@@ -116,11 +135,49 @@ controllersModule.controller('playlistController', function($scope, $filter, $ro
                 appId  : '174261',
                 channelUrl : 'https://www.partyshark.tk/channel.html',
                 player : {
+                    container: 'player',
+                    width : 800,
+                    height : 300,
                 onload : function(){
                         playlistService.setPlayerInitialized();
                         $.notify("Player loaded.", "success");
+
+                        //If loading player, play first song in party playlist
+                        var playthrough = playlistService.getTopPlaythrough();
+                        if(playthrough) {
+                            partyService.setCurrPlaythrough(playthrough.code);
+                            DZ.player.playTracks([playthrough.song_code]);
+                            $.notify("Playing next song in party.", "info");
+                        }
                     }
                 }
+            });
+            DZ.Event.subscribe('track_end', function(evt_name){
+                //tell server playthrough is done
+                netService.updateCurrentPlaythrough(partyService.getPartyCode(), partyService.getCurrPlaythrough(), null, 9999999)
+                    .then(function(response) {
+                        netService.getPlaylist(partyService.getPartyCode())
+                            .then(function(data) {
+                                $scope.emptyPlaylist = playlistService.isEmpty();
+                                $scope.playlist = playlistService.getPlaylist();
+                                populatePlaylist();
+                                $route.reload();
+                                //load player with track in position 0
+                                var playthrough = playlistService.getTopPlaythrough();
+                                    if(playthrough) {
+                                        partyService.setCurrPlaythrough(playthrough.code);
+                                        DZ.player.playTracks([playthrough.song_code]);
+                                        $.notify("Playing next song in party.", "info");
+                                    }
+                            }, function(error) {
+                                console.log(error);
+                                $.notify("Could not get playlist.", "error");
+                            });
+                    },
+                    function(error) {
+                        console.log(error);
+                        $.notify("Song could not be marked as completed.", "error");
+                    }); 
             });
         }
         else {
@@ -148,7 +205,6 @@ controllersModule.controller('playlistController', function($scope, $filter, $ro
         
     }
     else {
-        console.log("fetch playlist");
         fetchPlaylist();
     }
 
@@ -159,7 +215,6 @@ controllersModule.controller('playlistController', function($scope, $filter, $ro
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
                 populatePlaylist();
-                //playthrough items with song info in scope.playlist
             }, function(error) {
                 console.log(error);
                 $.notify("Could not get playlist.", "error");
@@ -184,7 +239,7 @@ controllersModule.controller('playlistController', function($scope, $filter, $ro
     }
 
     $scope.votePlaythrough = function(playthroughCode, vote) {
-        netService.updateCurrentPlaythrough(partyService.getPartyCode, playthroughCode, vote)
+        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthroughCode, vote)
             .then(function(response) {
                 $.notify("Vote was added!", "success");
                 playlistService.getPlaylist().findIndex(function(element, index, array) {
@@ -202,6 +257,7 @@ controllersModule.controller('playlistController', function($scope, $filter, $ro
                 $.notify("Vote was not added to the playthrough.", "error");
             });
     }
+
 });
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {
@@ -222,9 +278,15 @@ controllersModule.controller('searchController', function($scope, $location, $ro
         netService.createPlaythrough(songCode)
             .then(function(data) {
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
-                DZ.player.playTracks([data.data.song_code]);
+
+                //If first song being added to the party playlist, add song to player
+                if(!playlistService.getPlaylist().length){
+                    partyService.setCurrPlaythrough(data.data.code);
+                    DZ.player.playTracks([data.data.song_code]);
+                }   
             }, function(error) {
-                alert("Error fetching search results party.")
+                console.log(error);
+                $.notify("Error adding song to playlist.", "error");
             });
     }
 });

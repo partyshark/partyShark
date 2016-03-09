@@ -369,7 +369,7 @@ footer .footer-below {
 
 .scroll-top {
     z-index: 1049;
-    position: fixed;
+    /*position: fixed;*/
     right: 2%;
     bottom: 2%;
     width: 50px;
@@ -489,8 +489,4 @@ i#upvotes{
 }
 i#downvotes{
     color: #EE4444;
-}
-
-.deezerplayer {
-    display: none;
 }

@@ -9,7 +9,8 @@ servicesModule.service('partyService', function(){
     	_playerName = "",
     	_displayName = "",
     	_isPlaying = false,
-        _isInParty = false;
+        _isInParty = false,
+        _currPlaythroughCode = "";
     return {
         isPlayer: function() {
             return (_displayName == _playerName);
@@ -28,6 +29,13 @@ servicesModule.service('partyService', function(){
         },
         getDisplayName: function() {
         	return _displayName;
+        },
+        setCurrPlaythrough: function(playthroughCode) {
+            _currPlaythroughCode = playthroughCode;
+            return true;
+        },
+        getCurrPlaythrough: function() {
+            return _currPlaythroughCode;
         },
         setDisplayName: function(displayName) {
         	_displayName = displayName;
@@ -102,10 +110,11 @@ servicesModule.service('cacheService', function() {
 	_songCache = [];
 	return {
 		isSongCached: function(songCode) {
-			var result = $.grep(_songCache, function(e){ return e.code == songCode; });
-			if(result.length)
-				return result;
-			return false;
+			for(var i=0; i<_songCache.length; i++) {
+                if(_songCache[i].code == songCode)
+                    return _songCache[i];
+            }
+            return false;
 		},
         addSongCache: function(song) {
             _songCache.push(song);
@@ -131,6 +140,13 @@ servicesModule.service('playlistService', function() {
 		getPlaylist: function() {
 			return _playlist;
 		},
+        getTopPlaythrough: function() {
+            for (var i=0; i<_playlist.length; i++) {
+                if(_playlist[i].position == 0)
+                    return _playlist[i];
+            }
+            return false;
+        },
 		setPlaylist: function(playlist) {
 			_playlist = playlist;
             if(playlist.length) {
@@ -186,7 +202,6 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                         completed_durationIndex = properties.indexOf("completedDuration"),
                         creationTimeIndex = properties.indexOf("creation_time")
 
-                    
                     //Populate search results array with search objects
                     var values = response.data.values;
                     for (var i = 0; i<values.length; i++) {
@@ -231,7 +246,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 		getPlaythrough: function(partyCode, playthroughCode) {
 
 		},
-		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote) {
+		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, duration) {
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
@@ -239,6 +254,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                    'x-user-code': partyService.getUserName()
                  },
                  data: {
+                    "completed_duration": duration,
                     "vote": vote
                 }
             }
@@ -275,20 +291,17 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getSong: function(songCode) {
-            /*var deferred = $q.defer();
+            var deferred = $q.defer();
 			var song = cacheService.isSongCached(songCode);
 			if(song) {
-                console.log("Retrieved song from cache.");
                 deferred.resolve(song);
                 return deferred.promise;
             }
-			else*/
-                console.log("Retrieved song from server.");
+			else
 				return $http.get(serverAddress+'/songs/'+songCode, {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                         cacheService.addSongCache(response.data);
-                        console.log
                     	return response.data;
                 }, function(response) {
                     return $q.reject(response);
