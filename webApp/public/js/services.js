@@ -7,7 +7,7 @@ servicesModule.service('partyService', function(){
     	_adminCode = "",
     	_userName = "",
     	_playerName = "",
-    	_displayName = "",
+    	_displayName = "null",
     	_isPlaying = false,
         _isInParty = false,
         _currPlaythroughCode = "";

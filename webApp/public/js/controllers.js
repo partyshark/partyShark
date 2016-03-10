@@ -3,17 +3,6 @@ var controllersModule = angular.module('controllersModule',['servicesModule']);
 controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService) {
     $scope.isPlayer = false;
 
-    //set global route refresh wrapper
-    $scope.start = function() {
-      $scope.stop(); 
-      $scope.refresh = $interval(function() {
-            $route.reload();
-        }, 5000);
-    }
-    $scope.stop = function() {
-      $interval.cancel($scope.refresh);
-    }
-
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
     }
@@ -122,7 +111,10 @@ controllersModule.controller('playlistController', function($scope, $route, $int
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
     //Update the playlist periodically to keep it up to date
-    var refresh = $interval(function(){$route.reload();}, 5000);
+    var refresh = $interval(function(){
+        fetchPlaylist();
+    }, 5000);
+
     $scope.$on('$destroy', function() {
       $interval.cancel(refresh);
     });
@@ -130,7 +122,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     //If player, load player and define event triggers
     $rootScope.isPlayer = partyService.isPlayer();
     if($rootScope.isPlayer && !playlistService.isPlayerInitialized()) {
-        if(swfobject.hasFlashPlayerVersion("6.0")) {
+        if(swfobject.hasFlashPlayerVersion("10.1")) {
             DZ.init({
                 appId  : '174261',
                 channelUrl : 'https://www.partyshark.tk/channel.html',
@@ -141,7 +133,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                 onload : function(){
                         playlistService.setPlayerInitialized();
                         $.notify("Player loaded.", "success");
-
                         //If loading player, play first song in party playlist
                         var playthrough = playlistService.getTopPlaythrough();
                         if(playthrough) {
@@ -154,14 +145,14 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             });
             DZ.Event.subscribe('track_end', function(evt_name){
                 //tell server playthrough is done
-                netService.updateCurrentPlaythrough(partyService.getPartyCode(), partyService.getCurrPlaythrough(), null, 9999999)
+                netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
                     .then(function(response) {
                         netService.getPlaylist(partyService.getPartyCode())
                             .then(function(data) {
                                 $scope.emptyPlaylist = playlistService.isEmpty();
                                 $scope.playlist = playlistService.getPlaylist();
                                 populatePlaylist();
-                                $route.reload();
+                                //$route.reload();
                                 //load player with track in position 0
                                 var playthrough = playlistService.getTopPlaythrough();
                                     if(playthrough) {
@@ -169,6 +160,8 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                                         DZ.player.playTracks([playthrough.song_code]);
                                         $.notify("Playing next song in party.", "info");
                                     }
+                                    else
+                                        console.log("no position 0");
                             }, function(error) {
                                 console.log(error);
                                 $.notify("Could not get playlist.", "error");
