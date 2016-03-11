@@ -4,7 +4,10 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
     $scope.isPlayer = false;
     $scope.isAdmin = false;
 
-    $scope.playerPromise = null;
+    if($scope.playerPromise) {
+        $interval.cancel($scope.playerPromise);
+        $scope.playerPromise = null;
+    }
 
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -197,7 +200,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                     .then(function(res){
                         if(res.player == partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
-                            $interval.cancel($rootScope.playerPromise);
+                            //Find a way to stop the interval
                         } 
                         if(res.data.is_playing)
                             DZ.player.play();
