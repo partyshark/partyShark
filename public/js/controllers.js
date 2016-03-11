@@ -215,16 +215,13 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }  
 
     function populatePlaylist() {
-        var playlist = playlistService.getPlaylist(),
+        var playlist = playlistService.getPlaylist();
         playlist.forEach(function(item, i) {
             netService.getSong(item.song_code)
                 .then(function(data) {
-                    item["title"] = data.title;
-                    item["artist"] = data.artist;
-                    item["year"] = data.year;
-                    item["duration"] = data.duration;
+                    item.song = data;
                 }, function(error) {
-                    console.log("Could not get song details for songCode: "+playlist[i].song_code);
+                    console.log("Could not get song details for song: "+playlist[i].song_code);
                 }); 
         }) 
         $scope.playlist = playlistService.getPlaylist();

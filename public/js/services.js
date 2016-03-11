@@ -199,7 +199,6 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                         valList.forEach(function(val, index) {
                             obj[names[index]] = val;
                         });
-                        obj.song = netService.getSong(obj.song_code);
                         arr.push(obj);
                     });
 
