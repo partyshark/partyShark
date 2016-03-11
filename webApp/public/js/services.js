@@ -37,6 +37,9 @@ servicesModule.service('partyService', function(){
         getCurrPlaythrough: function() {
             return _currPlaythroughCode;
         },
+        getAdminCode: function() {
+            return _adminCode;
+        },
         setDisplayName: function(displayName) {
         	_displayName = displayName;
         	return true;

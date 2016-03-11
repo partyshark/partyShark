@@ -25,9 +25,14 @@
                         </label>
                       </div>
                   </div>
+                  <div ng-show="showAdminControl">
                     <button class="btn btn-primary" type="button" ng-click="update();">Update</button>
+                    <h6>Admin Code: {{adminCode}}</h6>
+                  </div>
+                  <div ng-hide="showAdminControl">
                     <input class="form-control" type="text" ng-model="adminCode"></input>
                     <button class="btn btn-primary" type="button" ng-click="promoteUser();">Promote</button>
+                  </div>
                 </form>
             </div>
         </div>
