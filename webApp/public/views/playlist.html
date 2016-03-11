@@ -17,11 +17,11 @@
                                 <div class='well well-sm' ng-model="playthrough.position">
                                     <div class='media song'>
                                         <div class='media-left'>
-                                             <img class='media-object' ng-src='https://s-media-cache-ak0.pinimg.com/236x/5d/ee/db/5deedb50cfb3e899f58cdd2885c40b4f.jpg' alt='' style="width: 96px;">
+                                             <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
                                         </div>
                                         <div class='media-body'>
-                                            <h4 class='media-heading'>{{playthrough.title}}</h4>
-                                            <p>{{playthrough.artist}}</p>
+                                            <h4 class='media-heading'>{{playthrough.song.title}}</h4>
+                                            <p>{{playthrough.song.artist}}</p>
                                             <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
                                         </div>
                                         <div class="upvote">

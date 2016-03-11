@@ -320,10 +320,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         playlist.forEach(function(item) {
             netService.getSong(item.song_code)
                 .then(function(data) {
-                    item["title"] = data.title;
-                    item["artist"] = data.artist;
-                    item["year"] = data.year;
-                    item["duration"] = data.duration;
+                    item.song = data;
                 }, function(error) {
                     console.log("Could not get song details for songCode: "+playlist[i].song_code);
                 }); 

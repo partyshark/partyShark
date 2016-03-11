@@ -207,49 +207,30 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 
 		},
 		getPlaylist: function(partyCode) {
-            var resultsArray = [];
-			return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    //Find index of each property
-                    var properties = response.data.properties,
-                        codeIndex = properties.indexOf("code"),
-                        song_codeIndex = properties.indexOf("song_code"),
-                        positionIndex = properties.indexOf("position"),
-                        upvotesIndex = properties.indexOf("upvotes"),
-                        downvotesIndex = properties.indexOf("downvotes"),
-                        suggesterIndex = properties.indexOf("suggester"),
-                        voteIndex = properties.indexOf("vote"),
-                        completed_durationIndex = properties.indexOf("completedDuration"),
-                        creationTimeIndex = properties.indexOf("creation_time")
+            return $http.get(
+                serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist',
+                { headers: {'x-user-code': partyService.getUserName()} }
+            )
+            .then(
+                function(response) {
+                    var arr = [ ], names = response.data.properties;
 
-                    //Populate search results array with search objects
-                    var values = response.data.values;
-                    for (var i = 0; i<values.length; i++) {
-                        var item = {
-                            "code": values[i][codeIndex],
-                            "song_code": values[i][song_codeIndex],
-                            "position": values[i][positionIndex],
-                            "upvotes": values[i][upvotesIndex],
-                            "downvotes": values[i][downvotesIndex],
-                            "suggester": values[i][suggesterIndex],
-                            "vote": values[i][voteIndex],
-                            "completed_duration": values[i][completed_durationIndex],
-                            "creation_time": values[i][creationTimeIndex],
-                            "year": "",
-                            "duration": "",
-                            "title": "",
-                            "artist": "",
-                            "albumSource": ""
-                        }
-                        resultsArray.push(item);
-                    }
-                    	playlistService.setPlaylist(resultsArray);
-                        return response;
-                }, function(response) {
+                    response.data.values.forEach(function(valList) {
+                        var obj = { };
+                        valList.forEach(function(val, index) {
+                            obj[names[index]] = val;
+                        });
+                        arr.push(obj);
+                    });
+
+                    playlistService.setPlaylist(arr);
+                    return response;
+                },
+                function(response) {
                     return $q.reject(response);
-                });
-		},
+                }
+            );
+        },
 		createPlaythrough: function(songId) {
 			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
 				"song_code": songId
@@ -312,55 +293,59 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getSong: function(songCode) {
-            var deferred = $q.defer();
-			var song = cacheService.isSongCached(songCode);
-			if(song) {
+            var song = cacheService.isSongCached(songCode);
+            if(song) {
+                var deferred = $q.defer();
                 deferred.resolve(song);
                 return deferred.promise;
             }
-			else
-				return $http.get(serverAddress+'/songs/'+songCode, {
-                        headers: {'x-user-code': partyService.getUserName()}})
+            else {
+                return $http.jsonp(
+                    'https://api.deezer.com/track/'+songCode+'&output=jsonp&callback=JSON_CALLBACK',
+                    { headers: {'x-user-code': partyService.getUserName()} }
+                )
                 .then(function(response) {
-                        cacheService.addSongCache(response.data);
-                    	return response.data;
-                }, function(response) {
+                    var result = response.data;
+                    var song = {
+                       'code': result.id,
+                       'title': result.title_short,
+                       'duration': result.duration * 1000,
+                       'artist': result.artist.name,
+                       'art': result.album.cover,
+                       'year': result.release_date.split('-')[0]
+                    };
+
+                    cacheService.addSongCache(song);
+                    return song;
+                },
+                function(response) {
                     return $q.reject(response);
                 });
-		},
+            }
+        },
 		searchSongs: function(query) {
-			var resultsArray = [];
+            return $http.jsonp('https://api.deezer.com/search?q='+query+'&output=jsonp&callback=JSON_CALLBACK')
+                .then(
+                    function(response) {
+                        var arr = [ ];
 
-			return $http.get(serverAddress+'/songs?search='+query, {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                	//Find index of each property
-                	var properties = response.data.properties,
-                		codeIndex = properties.indexOf("code"),
-                		yearIndex = properties.indexOf("year"),
-                		titleIndex = properties.indexOf("title"),
-                		durationIndex = properties.indexOf("duration"),
-                		artistIndex = properties.indexOf("artist");
+                        response.data.data.forEach(function(result) {
+                            arr.push({
+                                'code': result.id,
+                                'title': result.title_short,
+                                'duration': result.duration * 1000,
+                                'artist': result.artist.name,
+                                'art': result.album.cover
+                            });
+                        });
 
-            		
-            		//Populate search results array with search objects
-            		var values = response.data.values;
-                	for (var i = 0; i<values.length; i++) {
-                		var item = {
-                			"code": values[i][codeIndex],
-                			"title": values[i][titleIndex],
-                			"artist": values[i][artistIndex],
-                			"year": values[i][yearIndex],
-                			"duration": values[i][durationIndex]
-                		}
-                		//console.log(item);
-                		resultsArray.push(item);
-                	}
-                    	return resultsArray;
-                }, function(response) {
-                    return $q.reject(response);
-                });
-		},
+                        return arr;
+                    },
+                    function(response) {
+                        return $q.reject(response);
+                    }
+                );
+        },
 		sendContact: function(contactObject) {
 			return true;
 		},
