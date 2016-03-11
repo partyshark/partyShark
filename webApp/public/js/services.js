@@ -162,6 +162,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 	return {
 		createParty: function() {
 			return $http.post(serverAddress+'/parties', {
+                headers: {'Access-Control-Request-Headers' : 'http://partyshark.tk'}
 			})
                 .then(function(response, headers) {
                     partyService.setParty(response.data);
@@ -172,17 +173,34 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getParty: function(partyCode) {
-            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName()}})
+            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName(),
+        'Access-Control-Request-Headers' : 'http://partyshark.tk'}})
                 .then(function(response) {
                     partyService.setParty(response.data);
+                    return response;
                 }, function(response) {
                     return $q.reject(response.data);
                 });
         },
+        updateParty: function(partyCode, status) {
+            var req = {
+                 method: 'PUT',
+                 url: serverAddress+'/parties/'+partyCode,
+                 headers: {
+                   'x-user-code': partyService.getUserName()
+                 },
+                 data: {
+                    "is_playing": status
+                }
+            }
+            return $http(req)
+                .then(function(response) {
+                        return response.data;
+                }, function(error) {
+                    return $q.reject(error);
+                });
+        },
 		requestPlayer: function(partyCode, playerTransferCode) {
-
-		},
-		handlePlayerRequest: function(status) {
 
 		},
 		getPlaylist: function(partyCode) {
@@ -368,6 +386,33 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                     return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        },
+        promoteUser: function(adminCode) {
+            var req = {
+                 method: 'PUT',
+                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self',
+                 headers: {
+                   'x-user-code': partyService.getUserName()
+                 },
+                 data: {
+                    "admin_code": adminCode
+                }
+            }
+            return $http(req)
+                .then(function(response) {
+                        return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        }, 
+        isAdmin: function() {
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
+                        headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    return response.data.is_admin;
                 }, function(response) {
                     return $q.reject(response);
                 });

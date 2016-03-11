@@ -1,7 +1,8 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService) {
+controllersModule.controller('mainController', function($scope, $window, $route,$location, $rootScope, $route, partyService, netService) {
     $scope.isPlayer = false;
+    $scope.isAdmin = false;
 
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -13,9 +14,9 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
         //replace with exit party net service call
         netService.leaveParty()
             .then(function(data) {
-                $location.path('/');
                 $scope.isPlayer = false;
                 $scope.topButtons.splice(0,$scope.topButtons.length);
+                $location.path('/');
                 $.notify("Left party sucessfully!", "success");
             }, function(error) {
                 console.log(error);
@@ -36,7 +37,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
     }
 });
 
-controllersModule.controller('joinPartyController', function($scope, $location, netService, partyService) {
+controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService) {
     $scope.joinParty = function() {
         partyService.setPartyCode($scope.partyCode);
         netService.createUser(partyService.getPartyCode())
@@ -44,6 +45,7 @@ controllersModule.controller('joinPartyController', function($scope, $location, 
                 netService.getParty(partyService.getPartyCode())
                     .then(function(data) {
                         $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
+                        $rootScope.isAdmin = netService.isAdmin();
                         $location.path('/'+partyService.getPartyCode()+'/playlist');
                     }, function(error) {
                         console.log(error);
@@ -96,13 +98,31 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
 
 controllersModule.controller('optionsController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+
+    $rootScope.isAdmin = netService.isAdmin();
+    $scope.isAdmin = $rootScope.isAdmin;
+    console.log($scope.isAdmin);
+    $scope.currMaxQueue = optionsService.getMaxQueueSize();
+    $scope.currMaxParticipants = optionsService.getNumParticipants();
+
     $scope.update = function() {
+        optionsService.setNumParticipants($scope.maxParticipants);
+        optionsService.setMaxQueueSize($scope.maxQueue);
         netService.updatePartySettings()
             .then(function(data) {
                 $.notify("Party settings changed!", "success");
             }, function(error) {
                 console.log(error);
                 $.notify("Error updating party settings.", "error");
+            });
+    },
+    $scope.promoteUser = function() {
+        netService.promoteUser($scope.adminCode)
+            .then(function(data) {
+                $.notify("User has been promoted to admin", "success");
+            }, function(error) {
+                console.log(error);
+                $.notify("Could not promote user.", "error");
             });
     }
 });
@@ -119,17 +139,52 @@ controllersModule.controller('playlistController', function($scope, $route, $int
       $interval.cancel(refresh);
     });
 
+    $rootScope.play = function() {
+        netService.updateParty(partyService.getPartyCode(), true)
+            .then(function(data) {
+                $.notify("Sent Play", "success");
+            }, function(error) {
+                console.log(error);
+            $.notify("Could not send play.", "error");
+        });
+    }
+
+    $rootScope.pause = function() {
+        netService.updateParty(partyService.getPartyCode(), false)
+            .then(function(data) {
+                $.notify("Sent Pause", "success");
+            }, function(error) {
+                console.log(error);
+            $.notify("Could not send pause.", "error");
+        });
+    }
+
+    //If admin, show pause/play buttons
+    $rootScope.isAdmin = netService.isAdmin();
+
     //If player, load player and define event triggers
     $rootScope.isPlayer = partyService.isPlayer();
     if($rootScope.isPlayer && !playlistService.isPlayerInitialized()) {
         if(swfobject.hasFlashPlayerVersion("10.1")) {
+
+            //Check party player status
+            var checkPlaying = $interval(function(){
+                netService.getParty(partyService.getPartyCode())
+                    .then(function(res){
+                        if(res.data.is_playing)
+                            DZ.player.play();
+                        else
+                            DZ.player.pause();
+                    }, function(error){
+                        console.log(error);
+                        $.notify("Could not check play status", "error");
+                    });
+            }, 2000);
+
             DZ.init({
                 appId  : '174261',
                 channelUrl : 'https://www.partyshark.tk/channel.html',
                 player : {
-                    container: 'player',
-                    width : 800,
-                    height : 300,
                 onload : function(){
                         playlistService.setPlayerInitialized();
                         $.notify("Player loaded.", "success");
@@ -142,6 +197,13 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         }
                     }
                 }
+            });
+            DZ.Event.subscribe('current_track', function(track) {
+                $rootScope.trackTitle = track.track.title;
+                $rootScope.trackArtist = track.track.artist.name;
+            });
+            DZ.Event.subscribe('player_position', function(arg){
+                $("#slider_seek").find('.bar').css('width', (100*arg[0]/arg[1]) + '%');
             });
             DZ.Event.subscribe('track_end', function(evt_name){
                 //tell server playthrough is done
