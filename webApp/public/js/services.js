@@ -9,8 +9,7 @@ servicesModule.service('partyService', function(){
     	_playerName = "",
     	_displayName = "null",
     	_isPlaying = false,
-        _isInParty = false,
-        _currPlaythroughCode = "";
+        _isInParty = false;
     return {
         isPlayer: function() {
             return (_displayName == _playerName);
@@ -29,13 +28,6 @@ servicesModule.service('partyService', function(){
         },
         getDisplayName: function() {
         	return _displayName;
-        },
-        setCurrPlaythrough: function(playthroughCode) {
-            _currPlaythroughCode = playthroughCode;
-            return true;
-        },
-        getCurrPlaythrough: function() {
-            return _currPlaythroughCode;
         },
         getAdminCode: function() {
             return _adminCode;
@@ -79,7 +71,7 @@ servicesModule.service('optionsService', function() {
 	var _numParticipants = 10,
 		_maxQueueSize = 50,
 		_virtualDj = false,
-		_defaultGenre = "hits",
+		_defaultGenre = 4,
 		_vetoRatio = 0.5;
 
 	return {
@@ -105,7 +97,10 @@ servicesModule.service('optionsService', function() {
 		setMaxQueueSize: function(size) {
 			_maxQueueSize = size;
 			return _maxQueueSize;
-		}
+		},
+        setDefaultGenre: function(genre) {
+            _defaultGenre = genre;
+        }
 	}
 });
 
@@ -165,7 +160,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 	return {
 		createParty: function() {
 			return $http.post(serverAddress+'/parties', {
-                headers: {'Access-Control-Request-Headers' : 'http://partyshark.tk'}
+                
 			})
                 .then(function(response, headers) {
                     partyService.setParty(response.data);
@@ -176,8 +171,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getParty: function(partyCode) {
-            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName(),
-        'Access-Control-Request-Headers' : 'http://partyshark.tk'}})
+            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
                     partyService.setParty(response.data);
                     return response;
@@ -267,8 +261,18 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(error);
                 });
 		},
-		getPartySettings: function(partyCode) {
-
+		getPartySettings: function() {
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode(), {headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    optionsService.getVirtualDj(response.data.vitual_dj);
+                    optionsService.getDefaultGenre(response.data.default_genre);
+                    optionsService.getNumParticipants(response.data.user_cap);
+                    optionsService.getMaxQueueSize(response.data.playthrough_cap);
+                    optionsService.getVetoRatio(response.data.veto_ratio);
+                        return response;
+                }, function(response) {
+                    return $q.reject(response.data);
+                });
 		},
 		updatePartySettings: function() {
 			var req = {

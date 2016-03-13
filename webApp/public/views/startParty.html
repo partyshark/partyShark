@@ -25,6 +25,14 @@
                         </label>
                       </div>
                   </div>
+                  <div class="control-group">
+                      <label class="control-label">Default Radio Genre on Empty Playlist</label>
+                      <div class="controls">
+                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="4">Top Hits</label>
+                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="0">Classic Rock</label>
+                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="3">Country</label>
+                      </div>
+                  </div>
                   <button type="button" ng-click="startParty();" class="btn btn-default" id="partyStarted">Start The Party</button>
                   <button class="btn btn-primary" type="button" ng-click="backHome();">Go Back</button>
                 </form>
