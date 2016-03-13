@@ -32,7 +32,17 @@
                           <label class="radio"><input type="radio" ng-model="genreValue" ng-value="0">Classic Rock</label>
                           <label class="radio"><input type="radio" ng-model="genreValue" ng-value="3">Country</label>
                       </div>
-                  </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Default Radio Genre on Empty Playlist <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li><a href="#">Top Hits</a></li>
+                          <li><a href="#">Classic Rock</a></li>
+                          <li><a href="#">Country</a></li>
+                        </ul>
+                      </div>
                   <div ng-show="showAdminControl">
                     <button class="btn btn-primary" type="button" ng-click="update();">Update</button>
                     <h6>Admin Code: {{adminCode}}</h6>

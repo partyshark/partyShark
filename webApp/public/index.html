@@ -9,6 +9,33 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
+    <meta property="og:image" content="https://partyshark.tk/public/res/fbpreview.png"/>
+    <meta property="og:url" content="https://partyshark.tk/"/>
+    <meta property="og:title" content="PartyShark"/>
+    
+    <!-- Every Favicon Ever -->
+    <link rel="apple-touch-icon" sizes="57x57" href="res/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="res/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="res/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="res/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="res/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="res/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="res/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="res/favicon-194x194.png" sizes="194x194">
+    <link rel="icon" type="image/png" href="res/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="res/android-chrome-192x192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="res/manifest.json">
+    <link rel="mask-icon" href="res/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="res/favicon.ico">
+    <meta name="msapplication-TileColor" content="#2d89ef">
+    <meta name="msapplication-TileImage" content="res/mstile-144x144.png">
+    <meta name="msapplication-config" content="res/browserconfig.xml">
+    <meta name="theme-color" content="#fa6900">
+
     <title>PartyShark</title>
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -42,7 +69,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <p class="navbar-brand">PartyShark</p>
+                <a href="#" class="navbar-brand">PartyShark</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -74,8 +101,15 @@
                 <div class="row">
                     <div class="col-lg-2"></div>
                     <div class="col-lg-8">
-                        <h4>{{trackTitle}}</h4>
-                        <h5>{{trackArtist}}</h5>
+                        <div class="media">
+                            <div class='media-left'>
+                                <img class='media-object' ng-src='{{art}}' style="width: 96px;">
+                            </div>
+                            <div class="media-body">
+                                <h1>{{trackTitle}}</h1>
+                                <h2>{{trackArtist}}</h2>
+                            </div>
+                        </div>
                         <div id="slider_seek" class="progressbarplay" style="">
                             <div class="bar" style="width: 0%;"></div>
                         </div>
@@ -86,8 +120,8 @@
                 </div>
             </section>
             </div>
-            <button ng-show="isAdmin" class="btn btn-default" ng-click="play();">Play</button>
-            <button ng-show="isAdmin" class="btn btn-default" ng-click="pause();">Pause</button>
+            <center><button ng-show="isAdmin" class="btn btn-default" ng-click="play();"><i class="fa fa-play fa-2x"></i></button>
+            <button ng-show="isAdmin" class="btn btn-default" ng-click="pause();"><i class="fa fa-pause fa-2x"></i></button></center>
     <div ng-view></div>
     <footer class="text-center">
         <div class="footer-below">

@@ -297,6 +297,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         DZ.Event.subscribe('current_track', function(track) {
             $rootScope.trackTitle = track.track.title;
             $rootScope.trackArtist = track.track.artist.name;
+            //$rootScope.trackArt = 
 
         });
         DZ.Event.subscribe('player_position', function(arg){
