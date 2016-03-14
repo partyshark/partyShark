@@ -162,6 +162,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     $scope.promoteUser = function() {
         netService.promoteUser($scope.adminCode)
             .then(function(data) {
+                console.log(data);
                 var status = data.data.is_admin;
                 if(status)
                     $.notify("User has been promoted to admin.", "success");
