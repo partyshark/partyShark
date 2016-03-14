@@ -430,9 +430,40 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $.notify("Could not send pause.", "error");
         });
     }
-
-
-
+    $rootScope.skip = function() {
+        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
+            .then(function(response) {
+                netService.getPlaylist(partyService.getPartyCode())
+                    .then(function(data) {
+                        $scope.emptyPlaylist = playlistService.isEmpty();
+                        $scope.playlist = playlistService.getPlaylist();
+                        console.log($scope.playlist.length);
+                        populatePlaylist();
+                        //load player with track in position 0
+                        var playthrough = playlistService.getTopPlaythrough();
+                            if(playthrough) {
+                                DZ.player.playTracks([playthrough.song_code]);
+                                $.notify("Playing next song in party.", "info");
+                            }
+                            else {
+                                $scope.playerSeesEmpty = true;
+                                var station = getRadioStation();
+                                if(station) {
+                                    $.notify("No more playthroughs in playlist, playing radio.", "info");
+                                    DZ.player.playRadio(getRadioStation());
+                                    $scope.playingRadio = true;
+                                }
+                            }
+                    }, function(error) {
+                        console.log(error);
+                        $.notify("Could not get playlist.", "error");
+                    });
+            },
+            function(error) {
+                console.log(error);
+                $.notify("Song could not be marked as completed.", "error");
+            });
+    }
 });
 
 

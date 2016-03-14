@@ -1,4 +1,4 @@
-var serverAddress = 'http://nreid26.xyz:3000';
+var serverAddress = 'https://api.partyshark.tk';
 
 var servicesModule = angular.module('servicesModule',[]);
 
