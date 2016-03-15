@@ -240,8 +240,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         });
                         arr.push(obj);
                     });
-                    console.log(arr);
-                    console.log(usersRequestingPlayerIgnoredCodes);
 
                     var needAlert = true;
                     for (var i=0; i<arr.length; i++) {
@@ -278,14 +276,18 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $rootScope.playerPromise = $interval(function(){
                 netService.getParty(partyService.getPartyCode())
                     .then(function(res){
-                        if(res.player == partyService.getDisplayName()){
+                        if(res.data.player != partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
                             $interval.cancel($rootScope.playerPromise);
-                        } 
-                        if(res.data.is_playing)
-                            DZ.player.play();
-                        else
-                            DZ.player.pause();
+                            $.notify("You are no longer the player.", "info");
+                            $route.reload();
+                        }
+                        else {
+                            if(res.data.is_playing)
+                                DZ.player.play();
+                            else
+                                DZ.player.pause();
+                        }
                     }, function(error){
                         console.log(error);
                         $.notify("Could not check play status", "error");
