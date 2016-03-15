@@ -229,7 +229,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
 
         //admins poll on player transfer requests
         if($rootScope.isAdmin)
-
             netService.getPlayerTransferRequests().then(function(response){
                 var arr = [ ], names = response.data.properties;
 
@@ -278,6 +277,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                     .then(function(res){
                         if(res.data.player != partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
+                            $('#dz-root').empty();
                             $interval.cancel($rootScope.playerPromise);
                             $.notify("You are no longer the player.", "info");
                             $route.reload();
