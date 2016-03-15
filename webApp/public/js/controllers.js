@@ -102,7 +102,7 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $routeParams, $location, partyService, optionsService, netService) {
+controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
     //update party settings
@@ -177,9 +177,24 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
             });
     }
     $scope.requestPlayer = function() {
+        $.notify("You have requested to be the player, now pending acceptance.", "info");
         netService.requestPlayer()
             .then(function(data) {
-                console.log(data);
+                //Poll on response
+                var playerPoll = $interval(function() {
+                    netService.getPlayerTransferRequest(data.data.code).then(function(response){
+                        if(response.data.status) {
+                            netService.getParty(partyService.getPartyCode()).then(function(response){
+                                $location.path('/'+partyService.getPartyCode()+'/playlist');
+                                $.notify("You have been approved for player", "success");
+                            }, function(error){console.log(error);});
+                            $interval.cancel(playerPoll);
+                        }
+                    }, function(error){
+                        console.log(error);
+                        $.notify("Could not poll request status.", "error");
+                    });
+                }, 2000);
                 
             }, function(error) {
                 console.log(error);
@@ -234,14 +249,12 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                             if(usersRequestingPlayerIgnoredCodes[j].code == arr[i].code) {
                                 needAlert = false;
                             }
-                            else
-                                console.log(usersRequestingPlayerIgnoredCodes[j].code+', '+arr[i].code);
                         }
                         if(needAlert) {
                             var r = confirm(arr[i].requester+" would like to become a player.");
                             if (r == true) {
                                 //Accept player transfer
-                                netService.approvePlayerTransfer(1).then(function(res){}, function(error){console.log(error);});
+                                netService.approvePlayerTransfer(1, arr[i].code).then(function(res){}, function(error){console.log(error);});
                                 usersRequestingPlayerIgnoredCodes.push(arr[i]);
                             } else {
                                 usersRequestingPlayerIgnoredCodes.push(arr[i]);
@@ -439,7 +452,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             case 7:
                 break;
             default:
-                return false;
+                return 36801;
         }
     }
 

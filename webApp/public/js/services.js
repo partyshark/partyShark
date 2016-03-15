@@ -197,6 +197,14 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(error);
                 });
         },
+        getPlayerTransferRequest: function(playerTransferCode) {
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers/'+playerTransferCode, {headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        },
         getPlayerTransferRequests: function() {
             return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers', {headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
@@ -214,10 +222,10 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(response);
                 });
 		},
-        approvePlayerTransfer: function(status) {
+        approvePlayerTransfer: function(status, requestCode) {
             var req = {
                  method: 'PUT',
-                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers',
+                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers/'+requestCode,
                  headers: {
                    'x-user-code': partyService.getUserName()
                  },
