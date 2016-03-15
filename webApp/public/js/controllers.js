@@ -162,7 +162,6 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     $scope.promoteUser = function() {
         netService.promoteUser($scope.adminCode)
             .then(function(data) {
-                console.log(data);
                 var status = data.data.is_admin;
                 if(status)
                     $.notify("User has been promoted to admin.", "success");
@@ -172,6 +171,16 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                 $rootScope.isAdmin = status;
                 $scope.showAdminControl = status;
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
+            }, function(error) {
+                console.log(error);
+                $.notify("Could not promote user.", "error");
+            });
+    }
+    $scope.requestPlayer = function() {
+        netService.requestPlayer()
+            .then(function(data) {
+                console.log(data);
+                
             }, function(error) {
                 console.log(error);
                 $.notify("Could not promote user.", "error");
@@ -193,12 +202,54 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         $rootScope.isAdmin = false;
     });
 
+    usersRequestingPlayerIgnoredCodes = [];
+
+
     //Refresh occuring every interval, for all types of users, used to keep playlist up to date
     var refresh = $interval(function(){
         //Update playlist
         fetchPlaylist();
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
+
+        //admins poll on player transfer requests
+        if($rootScope.isAdmin)
+
+            netService.getPlayerTransferRequests().then(function(response){
+                var arr = [ ], names = response.data.properties;
+
+                    response.data.values.forEach(function(valList) {
+                        var obj = { };
+                        valList.forEach(function(val, index) {
+                            obj[names[index]] = val;
+                        });
+                        arr.push(obj);
+                    });
+                    console.log(arr);
+                    console.log(usersRequestingPlayerIgnoredCodes);
+
+                    var needAlert = true;
+                    for (var i=0; i<arr.length; i++) {
+                        for (var j=0; j<usersRequestingPlayerIgnoredCodes.length; j++) {
+                            if(usersRequestingPlayerIgnoredCodes[j].code == arr[i].code) {
+                                needAlert = false;
+                            }
+                            else
+                                console.log(usersRequestingPlayerIgnoredCodes[j].code+', '+arr[i].code);
+                        }
+                        if(needAlert) {
+                            var r = confirm(arr[i].requester+" would like to become a player.");
+                            if (r == true) {
+                                //Accept player transfer
+                                netService.approvePlayerTransfer(1).then(function(res){}, function(error){console.log(error);});
+                                usersRequestingPlayerIgnoredCodes.push(arr[i]);
+                            } else {
+                                usersRequestingPlayerIgnoredCodes.push(arr[i]);
+                            }
+                        }
+                    }
+            }, function(error){console.log(error);});
+
     }, 5000);
 
     $scope.$on('$destroy', function() {

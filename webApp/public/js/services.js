@@ -197,9 +197,41 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(error);
                 });
         },
-		requestPlayer: function(partyCode, playerTransferCode) {
-
+        getPlayerTransferRequests: function() {
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers', {headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                    return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
+        },
+		requestPlayer: function() {
+            return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers', {}, {
+                        headers: {'x-user-code': partyService.getUserName()}})
+                .then(function(response) {
+                        return response;
+                }, function(response) {
+                    return $q.reject(response);
+                });
 		},
+        approvePlayerTransfer: function(status) {
+            var req = {
+                 method: 'PUT',
+                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers',
+                 headers: {
+                   'x-user-code': partyService.getUserName()
+                 },
+                 data: {
+                   'status': status
+                }
+            }
+            return $http(req)
+                .then(function(response) {
+                        return response.data;
+                }, function(error) {
+                    return $q.reject(error);
+                });
+        },
 		getPlaylist: function(partyCode) {
             return $http.get(
                 serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist',
@@ -235,12 +267,6 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 }, function(response) {
                     return $q.reject(response);
                 });
-		},
-		vetoPlaythrough: function(partyCode, playthroughCode) {
-
-		},
-		getPlaythrough: function(partyCode, playthroughCode) {
-
 		},
 		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, duration) {
             var req = {
