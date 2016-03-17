@@ -40,7 +40,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
             "phone": $scope.contactPhone,
             "message": $scope.contactMessage
         });
-        $.notify("Server is not accepting messages yet", "info");
+        $.notify("Message has been sent", "success");
     }
 });
 
@@ -69,16 +69,22 @@ controllersModule.controller('joinPartyController', function($scope, $rootScope,
 
 controllersModule.controller('startPartyController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = [];
+    $scope.genres = [{
+        value: 4,
+        label: 'Top Hits'
+      }, {
+        value: 0,
+        label: 'Classic Rock'
+      }, {
+        value: 3,
+        label: 'Country'
+      }];
+
     $scope.startParty = function() {
-    	optionsService.setNumParticipants($scope.numParticipants);
-    	optionsService.setMaxQueueSize($scope.maxQueue);
-        optionsService.setDefaultGenre($scope.genreValue);
         netService.createParty()
             .then(function(data) {
-                    //Set party options once party is created
-                    netService.updatePartySettings()
+                    netService.updatePartySettings($scope.genreValue.value, $scope.numParticipants, $scope.maxQueue)
                         .then(function(data) {
-                            //Get user name
                             netService.getDisplayName()
                                 .then(function(data) {
                                     $.notify("You've joined the party as "+partyService.getDisplayName(), "success");
@@ -105,6 +111,16 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
 
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+    $scope.genres = [{
+        value: 4,
+        label: 'Top Hits'
+      }, {
+        value: 0,
+        label: 'Classic Rock'
+      }, {
+        value: 3,
+        label: 'Country'
+      }];
 
     //update party settings
     netService.getPartySettings()
@@ -148,10 +164,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     });
 
     $scope.update = function() {
-        optionsService.setNumParticipants($scope.maxParticipants);
-        optionsService.setMaxQueueSize($scope.maxQueue);
-        optionsService.setDefaultGenre($scope.genreValue);
-        netService.updatePartySettings()
+        netService.updatePartySettings($scope.genreValue.value, $scope.maxParticipants, $scope.maxQueue)
             .then(function(data) {
                 $.notify("Party settings changed!", "success");
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -379,7 +392,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         .then(function(data) {
                             $scope.emptyPlaylist = playlistService.isEmpty();
                             $scope.playlist = playlistService.getPlaylist();
-                            console.log($scope.playlist.length);
                             populatePlaylist();
                             //load player with track in position 0
                             var playthrough = playlistService.getTopPlaythrough();
@@ -456,7 +468,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             case 7:
                 break;
             default:
-                return -1;
+                return 31061;
         }
     }
 
@@ -522,9 +534,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                                     DZ.player.playRadio(getRadioStation());
                                     $scope.playingRadio = true;
                                 }
-                                else {
-                                    DZ.player.playTracks([]);
-                                }
                             }
                     }, function(error) {
                         console.log(error);
@@ -538,21 +547,12 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }
     $rootScope.loginPlayer = function() {
         DZ.login(function(response) {
-<<<<<<< HEAD
-                            console.log(response);
-
-=======
             console.log(response);
->>>>>>> webapp
             if (response.authResponse) {
             } else {
                 console.log('User cancelled login or did not fully authorize.');
             }
-<<<<<<< HEAD
-        }, {perms: 'basic_access,email'});
-=======
         }, {perms: 'basic_access'});
->>>>>>> webapp
     }
 });
 

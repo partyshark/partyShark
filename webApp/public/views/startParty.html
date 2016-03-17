@@ -25,25 +25,11 @@
                         </label>
                       </div>
                   </div>
-<!--                   <div class="control-group">
-                      <label class="control-label">Default Radio Genre on Empty Playlist</label>
-                      <div class="controls">
-                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="4">Top Hits</label>
-                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="0">Classic Rock</label>
-                          <label class="radio"><input type="radio" ng-model="genreValue" ng-value="3">Country</label>
-                      </div>
-                  </div> -->
-                  <div class="btn-group">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          Default Radio Genre on Empty Playlist <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li><a href="#">Top Hits</a></li>
-                          <li><a href="#">Classic Rock</a></li>
-                          <li><a href="#">Country</a></li>
-                        </ul>
-                      </div>
-                      <br><br>
+                  <div class="form-group">
+                    <label for="genreSelect">Default Radio Genre on Empty Playlist</label>
+                    <select id="genreSelect"class="form-control" ng-model="genreValue" ng-init="genreValue = genres[0]" ng-options="genre as genre.label for genre in genres"></select>
+                  </div>
+                  <br><br>
                   <button type="button" ng-click="startParty();" class="btn btn-default" id="partyStarted">Start The Party</button>
                   <button class="btn btn-primary" type="button" ng-click="backHome();">Go Back</button>
                 </form>

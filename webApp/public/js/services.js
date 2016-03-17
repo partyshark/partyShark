@@ -296,19 +296,17 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getPartySettings: function() {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode(), {headers: {'x-user-code': partyService.getUserName()}})
+            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/settings', {headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    optionsService.getVirtualDj(response.data.vitual_dj);
-                    optionsService.getDefaultGenre(response.data.default_genre);
-                    optionsService.getNumParticipants(response.data.user_cap);
-                    optionsService.getMaxQueueSize(response.data.playthrough_cap);
-                    optionsService.getVetoRatio(response.data.veto_ratio);
-                        return response;
+                    optionsService.setDefaultGenre(response.data.default_genre);
+                    optionsService.setNumParticipants(response.data.user_cap);
+                    optionsService.setMaxQueueSize(response.data.playthrough_cap);
+                    return response;
                 }, function(response) {
                     return $q.reject(response.data);
                 });
 		},
-		updatePartySettings: function() {
+		updatePartySettings: function(genre, participants, queue) {
 			var req = {
 				 method: 'PUT',
 				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',
@@ -317,15 +315,19 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 				 },
 				 data: {
 					"virtual_dj": optionsService.getVirtualDj(),
-	  				"default_genre": optionsService.getDefaultGenre(),
-	  				"user_cap": optionsService.getNumParticipants(),
-	  				"playthrough_cap": optionsService.getMaxQueueSize(),
+	  				"default_genre": genre,
+	  				"user_cap": participants,
+	  				"playthrough_cap": queue,
 	  				"veto_ratio": optionsService.getVetoRatio()
 				}
 			}
 			return $http(req)
                 .then(function(response) {
-                        return response;
+                    optionsService.setDefaultGenre(response.data.default_genre);
+                    optionsService.setNumParticipants(response.data.user_cap);
+                    optionsService.setMaxQueueSize(response.data.playthrough_cap);
+                    console.log(optionsService.getDefaultGenre());
+                    return response;
                 }, function(response) {
                     return $q.reject(response);
                 });
