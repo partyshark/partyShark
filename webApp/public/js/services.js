@@ -450,7 +450,9 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 
 servicesModule.service('playerService', function($interval) {
     var _playerInterval = null,
-        _player;
+        _player,
+        _playerSeesEmpty,
+        _playingRadio;
     return {
         startPlayerInterval: function(execute) {
             if(_playerInterval)
@@ -460,6 +462,18 @@ servicesModule.service('playerService', function($interval) {
         stopPlayerInterval: function() {
             $interval.cancel(_playerInterval);
             _playerInterval = null;
+        },
+        playerSeesEmpty: function() {
+            return _playerSeesEmpty;
+        },
+        setPlayerSeesEmpty: function(status) {
+            _playerSeesEmpty = status;
+        },
+        isPlayingRadio: function() {
+            return _playingRadio;
+        },
+        setPlayingRadio: function(status) {
+            _playingRadio = status;
         }
     }
 });
