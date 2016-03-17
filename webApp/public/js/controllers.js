@@ -537,13 +537,12 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }
     $rootScope.loginPlayer = function() {
         DZ.login(function(response) {
-                            console.log(response);
-
+            console.log(response);
             if (response.authResponse) {
             } else {
                 console.log('User cancelled login or did not fully authorize.');
             }
-        }, {perms: 'basic_access,email'});
+        }, {perms: 'basic_access'});
     }
 });
 
