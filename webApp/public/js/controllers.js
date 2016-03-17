@@ -538,13 +538,21 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }
     $rootScope.loginPlayer = function() {
         DZ.login(function(response) {
+<<<<<<< HEAD
                             console.log(response);
 
+=======
+            console.log(response);
+>>>>>>> webapp
             if (response.authResponse) {
             } else {
                 console.log('User cancelled login or did not fully authorize.');
             }
+<<<<<<< HEAD
         }, {perms: 'basic_access,email'});
+=======
+        }, {perms: 'basic_access'});
+>>>>>>> webapp
     }
 });
 
