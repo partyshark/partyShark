@@ -4,6 +4,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
     $scope.isPlayer = false;
     $scope.isAdmin = false;
 
+    //Cancel interval if not player
     if($scope.playerPromise) {
         $interval.cancel($scope.playerPromise);
         $scope.playerPromise = null;
@@ -454,7 +455,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             case 7:
                 break;
             default:
-                return 36801;
+                return -1;
         }
     }
 
@@ -515,10 +516,13 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                             else {
                                 $scope.playerSeesEmpty = true;
                                 var station = getRadioStation();
-                                if(station) {
+                                if(station != -1) {
                                     $.notify("No more playthroughs in playlist, playing radio.", "info");
                                     DZ.player.playRadio(getRadioStation());
                                     $scope.playingRadio = true;
+                                }
+                                else {
+                                    DZ.player.playTracks([]);
                                 }
                             }
                     }, function(error) {
@@ -530,6 +534,15 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                 console.log(error);
                 $.notify("Song could not be marked as completed.", "error");
             });
+    }
+    $rootScope.loginPlayer = function() {
+        DZ.login(function(response) {
+            if (response.authResponse) {
+                console.log('Welcome!  Fetching your information.... ');
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        });
     }
 });
 
@@ -548,10 +561,10 @@ controllersModule.controller('searchController', function($scope, $location, $ro
                 $.notify("Could not complete search.", "error");
             });
     },
-    $scope.addSong = function(songCode) {
+    $scope.addSong = function(songCode, songTitle, songArtist) {
         netService.createPlaythrough(songCode)
             .then(function(data) {
-                $location.path('/'+partyService.getPartyCode()+'/playlist'); 
+                $.notify(songTitle+" by "+songArtist+" was added", "success");
             }, function(error) {
                 console.log(error);
                 $.notify("Error adding song to playlist.", "error");
