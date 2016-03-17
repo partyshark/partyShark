@@ -11,8 +11,7 @@
         <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
            <body class="index">
     <section id="nowplaying">
-            <div class="row" style="height:400px;overflow:auto;">
-
+            <div class="row">
                             <div ng-repeat="playthrough in playlist | orderBy:'position':false">
                                 <div class='well well-sm' ng-model="playthrough.position">
                                     <div class='media song'>

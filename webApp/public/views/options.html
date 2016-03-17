@@ -48,9 +48,10 @@
                     <h6>Admin Code: {{adminCode}}</h6>
                   </div>
                   <div ng-hide="showAdminControl">
-                    <input class="form-control" type="text" ng-model="adminCode"></input>
+                    <input class="form-control" type="number" ng-model="adminCode"></input>
                     <button class="btn btn-primary" type="button" ng-click="promoteUser();">Promote</button>
                   </div>
+                  <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request Player</button>
                 </form>
             </div>
         </div>

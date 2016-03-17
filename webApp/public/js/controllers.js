@@ -4,6 +4,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
     $scope.isPlayer = false;
     $scope.isAdmin = false;
 
+    //Cancel interval if not player
     if($scope.playerPromise) {
         $interval.cancel($scope.playerPromise);
         $scope.playerPromise = null;
@@ -102,7 +103,7 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $routeParams, $location, partyService, optionsService, netService) {
+controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
     //update party settings
@@ -176,6 +177,31 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                 $.notify("Could not promote user.", "error");
             });
     }
+    $scope.requestPlayer = function() {
+        $.notify("You have requested to be the player, now pending acceptance.", "info");
+        netService.requestPlayer()
+            .then(function(data) {
+                //Poll on response
+                var playerPoll = $interval(function() {
+                    netService.getPlayerTransferRequest(data.data.code).then(function(response){
+                        if(response.data.status) {
+                            netService.getParty(partyService.getPartyCode()).then(function(response){
+                                $location.path('/'+partyService.getPartyCode()+'/playlist');
+                                $.notify("You have been approved for player", "success");
+                            }, function(error){console.log(error);});
+                            $interval.cancel(playerPoll);
+                        }
+                    }, function(error){
+                        console.log(error);
+                        $.notify("Could not poll request status.", "error");
+                    });
+                }, 2000);
+                
+            }, function(error) {
+                console.log(error);
+                $.notify("Could not promote user.", "error");
+            });
+    }
 });
 
 controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService) {
@@ -192,12 +218,49 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         $rootScope.isAdmin = false;
     });
 
+    usersRequestingPlayerIgnoredCodes = [];
+
+
     //Refresh occuring every interval, for all types of users, used to keep playlist up to date
     var refresh = $interval(function(){
         //Update playlist
         fetchPlaylist();
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
+
+        //admins poll on player transfer requests
+        if($rootScope.isAdmin)
+            netService.getPlayerTransferRequests().then(function(response){
+                var arr = [ ], names = response.data.properties;
+
+                    response.data.values.forEach(function(valList) {
+                        var obj = { };
+                        valList.forEach(function(val, index) {
+                            obj[names[index]] = val;
+                        });
+                        arr.push(obj);
+                    });
+
+                    var needAlert = true;
+                    for (var i=0; i<arr.length; i++) {
+                        for (var j=0; j<usersRequestingPlayerIgnoredCodes.length; j++) {
+                            if(usersRequestingPlayerIgnoredCodes[j].code == arr[i].code) {
+                                needAlert = false;
+                            }
+                        }
+                        if(needAlert) {
+                            var r = confirm(arr[i].requester+" would like to become a player.");
+                            if (r == true) {
+                                //Accept player transfer
+                                netService.approvePlayerTransfer(1, arr[i].code).then(function(res){}, function(error){console.log(error);});
+                                usersRequestingPlayerIgnoredCodes.push(arr[i]);
+                            } else {
+                                usersRequestingPlayerIgnoredCodes.push(arr[i]);
+                            }
+                        }
+                    }
+            }, function(error){console.log(error);});
+
     }, 5000);
 
     $scope.$on('$destroy', function() {
@@ -213,14 +276,19 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $rootScope.playerPromise = $interval(function(){
                 netService.getParty(partyService.getPartyCode())
                     .then(function(res){
-                        if(res.player == partyService.getDisplayName()){
+                        if(res.data.player != partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
+                            $('#dz-root').empty();
                             $interval.cancel($rootScope.playerPromise);
-                        } 
-                        if(res.data.is_playing)
-                            DZ.player.play();
-                        else
-                            DZ.player.pause();
+                            $.notify("You are no longer the player.", "info");
+                            $route.reload();
+                        }
+                        else {
+                            if(res.data.is_playing)
+                                DZ.player.play();
+                            else
+                                DZ.player.pause();
+                        }
                     }, function(error){
                         console.log(error);
                         $.notify("Could not check play status", "error");
@@ -388,7 +456,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             case 7:
                 break;
             default:
-                return false;
+                return -1;
         }
     }
 
@@ -431,9 +499,53 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $.notify("Could not send pause.", "error");
         });
     }
+    $rootScope.skip = function() {
+        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
+            .then(function(response) {
+                netService.getPlaylist(partyService.getPartyCode())
+                    .then(function(data) {
+                        $scope.emptyPlaylist = playlistService.isEmpty();
+                        $scope.playlist = playlistService.getPlaylist();
+                        console.log($scope.playlist.length);
+                        populatePlaylist();
+                        //load player with track in position 0
+                        var playthrough = playlistService.getTopPlaythrough();
+                            if(playthrough) {
+                                DZ.player.playTracks([playthrough.song_code]);
+                                $.notify("Playing next song in party.", "info");
+                            }
+                            else {
+                                $scope.playerSeesEmpty = true;
+                                var station = getRadioStation();
+                                if(station != -1) {
+                                    $.notify("No more playthroughs in playlist, playing radio.", "info");
+                                    DZ.player.playRadio(getRadioStation());
+                                    $scope.playingRadio = true;
+                                }
+                                else {
+                                    DZ.player.playTracks([]);
+                                }
+                            }
+                    }, function(error) {
+                        console.log(error);
+                        $.notify("Could not get playlist.", "error");
+                    });
+            },
+            function(error) {
+                console.log(error);
+                $.notify("Song could not be marked as completed.", "error");
+            });
+    }
+    $rootScope.loginPlayer = function() {
+        DZ.login(function(response) {
+                            console.log(response);
 
-
-
+            if (response.authResponse) {
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        }, {perms: 'basic_access,email'});
+    }
 });
 
 
@@ -451,10 +563,10 @@ controllersModule.controller('searchController', function($scope, $location, $ro
                 $.notify("Could not complete search.", "error");
             });
     },
-    $scope.addSong = function(songCode) {
+    $scope.addSong = function(songCode, songTitle, songArtist) {
         netService.createPlaythrough(songCode)
             .then(function(data) {
-                $location.path('/'+partyService.getPartyCode()+'/playlist'); 
+                $.notify(songTitle+" by "+songArtist+" was added", "success");
             }, function(error) {
                 console.log(error);
                 $.notify("Error adding song to playlist.", "error");
