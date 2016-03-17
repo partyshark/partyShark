@@ -1,14 +1,11 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService) {
+controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
 
     //Cancel interval if not player
-    if($scope.playerPromise) {
-        $interval.cancel($scope.playerPromise);
-        $scope.playerPromise = null;
-    }
+    playerService.stopPlayerInterval();
 
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -217,7 +214,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService) {
+controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
     $scope.playingRadio = false;
@@ -286,7 +283,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         if(swfobject.hasFlashPlayerVersion("10.1")) {
 
             //Check party player status
-            $rootScope.playerPromise = $interval(function(){
+            playerService.startPlayerInterval(function(){
                 netService.getParty(partyService.getPartyCode())
                     .then(function(res){
                         if(res.data.player != partyService.getDisplayName()){
@@ -323,7 +320,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         $.notify("Playing next song in party.", "info");
                     }
                 }
-            }, 2000);
+            });
 
             initializePlayer();
         }
@@ -359,22 +356,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }
 
     function initializePlayer() {
-        DZ.init({
-            appId  : '174261',
-            channelUrl : 'https://www.partyshark.tk/channel.html',
-            player : {
-            onload : function(){
-                    playlistService.setPlayerInitialized();
-                    $.notify("Player loaded.", "success");
-                    //If loading player, play first song in party playlist
-                    var playthrough = playlistService.getTopPlaythrough();
-                    if(playthrough) {
-                        DZ.player.playTracks([playthrough.song_code]);
-                        $.notify("Playing next song in party.", "info");
-                    }
-                }
-            }
-        });
         DZ.Event.subscribe('current_track', function(track) {
             $rootScope.trackTitle = track.track.title;
             $rootScope.trackArtist = track.track.artist.name;

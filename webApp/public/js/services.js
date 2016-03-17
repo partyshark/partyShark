@@ -448,6 +448,22 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 	}
 });
 
+servicesModule.service('playerService', function($interval) {
+    var _playerInterval = null,
+        _player;
+    return {
+        startPlayerInterval: function(execute) {
+            if(_playerInterval)
+                $interval.cancel(_playerInterval);
+            _playerInterval = $interval(execute, 2000);
+        },
+        stopPlayerInterval: function() {
+            $interval.cancel(_playerInterval);
+            _playerInterval = null;
+        }
+    }
+});
+
 
 
 
