@@ -9,7 +9,8 @@ servicesModule.service('partyService', function(){
     	_playerName = "",
     	_displayName = "null",
     	_isPlaying = false,
-        _isInParty = false;
+        _isInParty = false,
+        _refreshInterval = null;
     return {
         isPlayer: function() {
             return (_displayName == _playerName);
@@ -63,7 +64,13 @@ servicesModule.service('partyService', function(){
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
             _isInParty = true;
-    	}
+    	},
+        startRefresh: function() {
+
+        },
+        stopRefresh: function() {
+            
+        }
     }
 });
 
@@ -448,16 +455,74 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 	}
 });
 
-servicesModule.service('playerService', function($interval) {
+servicesModule.service('playerService', function($rootScope, $interval, $q, playlistService, optionsService, netService, partyService) {
     var _playerInterval = null,
         _player,
-        _playerSeesEmpty,
-        _playingRadio;
+        _playerSeesEmpty = true,
+        _playingRadio = false;
+
+    function getRadioStation() {
+        var genre = optionsService.getDefaultGenre();
+        if(!genre === null)
+            return -1;
+
+        switch(genre) {
+            case 0:
+                return 37765;
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                return 36801;
+            case 4:
+                return 31061;
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            default:
+                return -1;
+        }
+    }
+
     return {
-        startPlayerInterval: function(execute) {
+        //Player interval is used to poll events player needs
+        startPlayerInterval: function() {
+            var self = this;
             if(_playerInterval)
                 $interval.cancel(_playerInterval);
-            _playerInterval = $interval(execute, 2000);
+            _playerInterval = $interval(function() {
+                //Check to see if still player, pause or play
+                netService.getParty(partyService.getPartyCode())
+                    .then(function(res){
+                        //If no longer player, remove player functionality
+                        if(res.data.player != partyService.getDisplayName()){
+                            $rootScope.isPlayer = false;
+                            $('#dz-root').empty();
+                            $.notify("You are no longer the player.", "info");
+                            self.stopPlayerInterval();
+                        }
+                        else {
+                            if(res.data.is_playing)
+                                DZ.player.play();
+                            else
+                                DZ.player.pause();
+                        }
+                    }, function(error){
+                        console.log(error);
+                        $.notify("Could not check play status", "error");
+                    });
+
+                //Check if playingRadio, if so, check for available playthroughs
+                if (_playerSeesEmpty && playlistService.getPlaylist().length) {
+                    self.playNextPlaythrough();
+                }
+            }, 2000);
         },
         stopPlayerInterval: function() {
             $interval.cancel(_playerInterval);
@@ -474,6 +539,52 @@ servicesModule.service('playerService', function($interval) {
         },
         setPlayingRadio: function(status) {
             _playingRadio = status;
+        },
+        initializePlayer: function(callback) {
+            var self = this;
+            var deferred = $q.defer();
+            deferred.resolve("Success");
+            DZ.init({
+                appId  : '174261',
+                channelUrl : 'https://www.partyshark.tk/channel.html',
+                player : {
+                onload : function(){
+                        playlistService.setPlayerInitialized();
+                        self.playNextPlaythrough();
+                        callback();
+                    }
+                }
+            });
+        },
+        subscribeEvents: function() {
+            DZ.Event.subscribe('player_position', function(arg){
+                $("#slider_seek").find('.bar').css('width', (100*arg[0]/arg[1]) + '%');
+            });
+
+            DZ.Event.subscribe('current_track', function(track) {
+                $rootScope.trackTitle = track.track.title;
+                $rootScope.trackArtist = track.track.artist.name;
+            });
+        },
+        playNextPlaythrough: function() {
+            var playthrough = playlistService.getTopPlaythrough();
+            if(playthrough) {
+                _playerSeesEmpty = false;
+                _playingRadio = false;
+                DZ.player.playTracks([playthrough.song_code]);
+                $.notify("Playing next song in party.", "info");
+            }
+            else {
+                _playerSeesEmpty = true;
+                if(!_playingRadio) {
+                    var station = getRadioStation();
+                    if(station != -1) {
+                        $.notify("No more playthroughs in playlist, playing radio.", "info");
+                        DZ.player.playRadio(station);
+                        _playingRadio = true;
+                    }
+                } 
+            }
         }
     }
 });

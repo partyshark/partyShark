@@ -5,7 +5,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
     $scope.isAdmin = false;
 
     //Cancel interval if not player
-    playerService.stopPlayerInterval();
+    //playerService.stopPlayerInterval();
 
     $scope.playlist = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -67,6 +67,9 @@ controllersModule.controller('joinPartyController', function($scope, $rootScope,
 controllersModule.controller('startPartyController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = [];
     $scope.genres = [{
+        value: null,
+        label: 'None'
+      }, {
         value: 4,
         label: 'Top Hits'
       }, {
@@ -109,6 +112,9 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
     $rootScope.topButtons = ["playlist", "search", "options", "exit"];
     $scope.genres = [{
+        value: null,
+        label: 'None'
+      }, {
         value: 4,
         label: 'Top Hits'
       }, {
@@ -217,8 +223,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
-    playerService.setPlayingRadio(false);
-    playerService.setPlayerSeesEmpty(true);
+    //playerService.setPlayingRadio(false);
+    //playerService.setPlayerSeesEmpty(true);
 
     //Check if user is admin
     netService.isAdmin().then(function(res) {
@@ -236,7 +242,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         fetchPlaylist();
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
-
         //admins poll on player transfer requests
         if($rootScope.isAdmin)
             netService.getPlayerTransferRequests().then(function(response){
@@ -248,7 +253,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         });
                         arr.push(obj);
                     });
-
                     var needAlert = true;
                     for (var i=0; i<arr.length; i++) {
                         for (var j=0; j<usersRequestingPlayerIgnoredCodes.length; j++) {
@@ -281,40 +285,31 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         if(swfobject.hasFlashPlayerVersion("10.1")) {
             //Initialize player
             if(!playlistService.isPlayerInitialized()) {
-                initializePlayer();
+                playerService.initializePlayer(function() {$.notify("Player is loaded.","success");});
+                playerService.subscribeEvents();
+                DZ.Event.subscribe('track_end', function(arg){
+                    netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
+                        .then(function(response) {
+                            netService.getPlaylist(partyService.getPartyCode())
+                                .then(function(data) {
+                                    $scope.emptyPlaylist = playlistService.isEmpty();
+                                    $scope.playlist = playlistService.getPlaylist();
+                                    populatePlaylist();
+                                    playerService.playNextPlaythrough();
+                                }, function(error) {
+                                    console.log(error);
+                                    $.notify("Could not get playlist.", "error");
+                                });
+                        },
+                        function(error) {
+                            console.log(error);
+                            $.notify("Song could not be marked as completed.", "error");
+                        }); 
+                });
                 playlistService.setPlayerInitialized();
             }
-
             //Player polling interval
-            playerService.startPlayerInterval(function(){
-
-                //Check to see if still player, pause or play
-                netService.getParty(partyService.getPartyCode())
-                    .then(function(res){
-                        //If no longer player, remove player functionality
-                        if(res.data.player != partyService.getDisplayName()){
-                            $rootScope.isPlayer = false;
-                            $('#dz-root').empty();
-                            $interval.cancel($rootScope.playerPromise);
-                            $.notify("You are no longer the player.", "info");
-                            playerService.stopPlayerInterval();
-                        }
-                        else {
-                            if(res.data.is_playing)
-                                DZ.player.play();
-                            else
-                                DZ.player.pause();
-                        }
-                    }, function(error){
-                        console.log(error);
-                        $.notify("Could not check play status", "error");
-                    });
-
-                //Check if playingRadio, if so, check for available playthroughs
-                if (playerService.playerSeesEmpty() && playlistService.getPlaylist().length) {
-                    playNextPlaythrough();
-                }
-            });
+            playerService.startPlayerInterval();
         }
         else {
             $.notify("Flash Player is needed to initialize player.", "error");
@@ -347,70 +342,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         fetchPlaylist();
     }
 
-    function initializePlayer() {
-        DZ.init({
-            appId  : '174261',
-            channelUrl : 'https://www.partyshark.tk/channel.html',
-            player : {
-            onload : function(){
-                    playlistService.setPlayerInitialized();
-                    $.notify("Player loaded.", "success");
-                    playNextPlaythrough();
-                }
-            }
-        });
-        DZ.Event.subscribe('current_track', function(track) {
-            $rootScope.trackTitle = track.track.title;
-            $rootScope.trackArtist = track.track.artist.name;
-            //$rootScope.trackArt = 
-
-        });
-        DZ.Event.subscribe('player_position', function(arg){
-            $("#slider_seek").find('.bar').css('width', (100*arg[0]/arg[1]) + '%');
-        });
-        DZ.Event.subscribe('track_end', function(evt_name){
-            //tell server playthrough is done
-            netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
-                .then(function(response) {
-                    netService.getPlaylist(partyService.getPartyCode())
-                        .then(function(data) {
-                            $scope.emptyPlaylist = playlistService.isEmpty();
-                            $scope.playlist = playlistService.getPlaylist();
-                            populatePlaylist();
-                            playNextPlaythrough();
-                        }, function(error) {
-                            console.log(error);
-                            $.notify("Could not get playlist.", "error");
-                        });
-                },
-                function(error) {
-                    console.log(error);
-                    $.notify("Song could not be marked as completed.", "error");
-                }); 
-        });
-    }
-    function playNextPlaythrough() {
-        var playthrough = playlistService.getTopPlaythrough();
-        if(playthrough) {
-            playerService.setPlayerSeesEmpty(false);
-            playerService.setPlayingRadio(false);
-            DZ.player.playTracks([playthrough.song_code]);
-            $.notify("Playing next song in party.", "info");
-        }
-        else {
-            playerService.setPlayerSeesEmpty(true);
-            if(!playerService.isPlayingRadio()) {
-                var station = getRadioStation();
-                if(station != -1) {
-                    $.notify("No more playthroughs in playlist, playing radio.", "info");
-                    DZ.player.playRadio(getRadioStation());
-                    playerService.setPlayingRadio(true);
-                }
-            }
-            
-        }
-    }
-
     function fetchPlaylist() {
         //fetch existing playlist from server
         netService.getPlaylist(partyService.getPartyCode())
@@ -438,31 +369,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
         $scope.playlist = playlistService.getPlaylist();
     }
 
-    function getRadioStation() {
-        switch(optionsService.getDefaultGenre()) {
-            case 0:
-                return 37765;
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                return 36801;
-            case 4:
-                return 31061;
-                break;
-            case 5:
-                break;
-            case 6:
-                break;
-            case 7:
-                break;
-            default:
-                return 31061;
-        }
-    }
-
     $scope.votePlaythrough = function(playthroughCode, vote) {
         netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthroughCode, vote)
             .then(function(response) {
@@ -482,7 +388,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             });
     }
 
-    /*********************** Player commands available to admins ********************/
     $rootScope.play = function() {
         netService.updateParty(partyService.getPartyCode(), true)
             .then(function(data) {
@@ -511,7 +416,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         $scope.playlist = playlistService.getPlaylist();
                         console.log($scope.playlist.length);
                         populatePlaylist();
-                        playNextPlaythrough();
+                        playerService.playNextPlaythrough();
                     }, function(error) {
                         console.log(error);
                         $.notify("Could not get playlist.", "error");
