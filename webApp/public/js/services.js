@@ -475,7 +475,8 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
     var _playerInterval = null,
         _player,
         _playerSeesEmpty = true,
-        _playingRadio = false;
+        _playingRadio = false,
+        _currPlayingCode;
 
     function getRadioStation() {
         var genre = optionsService.getDefaultGenre();
@@ -519,13 +520,22 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                     .then(function(res){
                         netService.getPlaylist(partyService.getPartyCode())
                             .then(function(data) {
-                                if(!data.values.length && !_playingRadio) {
+                                //Check to make sure current playing is still at pos 0
+                                var play = playlistService.getTopPlaythrough();
+                                if(play.code !== _currPlayingCode) {
                                     self.playNextPlaythrough();
                                 }
+
+                                //If playing and last song is vetoed, play next
+                                if(!_playerSeesEmpty && !playlistService.getPlaylist().length) {
+                                    self.playNextPlaythrough();
+                                }
+
                             }, function(error) {
                                 console.log(error);
                                 $.notify("Could not get playlist.", "error");
                             });
+
                         //If no longer player, remove player functionality
                         if(res.data.player != partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
@@ -533,12 +543,14 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                             $.notify("You are no longer the player.", "info");
                             self.stopPlayerInterval();
                         }
+                        //If still player, check playing status
                         else {
                             if(res.data.is_playing)
                                 DZ.player.play();
                             else
                                 DZ.player.pause();
                         }
+
                     }, function(error){
                         console.log(error);
                         $.notify("Could not check play status", "error");
@@ -595,6 +607,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
         playNextPlaythrough: function() {
             var playthrough = playlistService.getTopPlaythrough();
             if(playthrough) {
+                _currPlayingCode = playthrough.code;
                 _playerSeesEmpty = false;
                 _playingRadio = false;
                 DZ.player.playTracks([playthrough.song_code]);

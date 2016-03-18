@@ -242,7 +242,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     var refresh = $interval(function(){
         //Update playlist
         fetchPlaylist();
-
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
         //admins poll on player transfer requests
@@ -410,7 +409,8 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $.notify("Could not send pause.", "error");
         });
     }
-    $rootScope.veto = function() {
+    $rootScope.veto = function(playthroughCode) {
+        /*
         netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
             .then(function(response) {
                 netService.getPlaylist(partyService.getPartyCode())
@@ -428,7 +428,14 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             function(error) {
                 console.log(error);
                 $.notify("Song could not be marked as completed.", "error");
-            });
+            });*/
+        netService.deletePlaythrough(playthroughCode)
+            .then(function(data) {
+                $.notify("Playthrough vetoed", "success");
+            }, function(error) {
+                console.log(error);
+            $.notify("Playthrough could not be vetoed.", "error");
+        });
     }
     $rootScope.loginPlayer = function() {
         DZ.login(function(response) {
