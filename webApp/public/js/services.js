@@ -283,6 +283,22 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(response);
                 });
 		},
+        deletePlaythrough: function(playthroughCode) {
+            var req = {
+                 method: 'DELETE',
+                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
+                 headers: {
+                   'x-user-code': partyService.getUserName()
+                 },
+                 data: {}
+            }
+            return $http(req)
+                .then(function(response) {
+                        return response.data;
+                }, function(error) {
+                    return $q.reject(error);
+                });
+        },
 		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, duration) {
             var req = {
                  method: 'PUT',
@@ -494,12 +510,22 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
         //Player interval is used to poll events player needs
         startPlayerInterval: function() {
             var self = this;
-            if(_playerInterval)
+            if(_playerInterval) {
                 $interval.cancel(_playerInterval);
+            }
             _playerInterval = $interval(function() {
                 //Check to see if still player, pause or play
                 netService.getParty(partyService.getPartyCode())
                     .then(function(res){
+                        netService.getPlaylist(partyService.getPartyCode())
+                            .then(function(data) {
+                                if(!data.values.length && !_playingRadio) {
+                                    self.playNextPlaythrough();
+                                }
+                            }, function(error) {
+                                console.log(error);
+                                $.notify("Could not get playlist.", "error");
+                            });
                         //If no longer player, remove player functionality
                         if(res.data.player != partyService.getDisplayName()){
                             $rootScope.isPlayer = false;
@@ -522,7 +548,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                 if (_playerSeesEmpty && playlistService.getPlaylist().length) {
                     self.playNextPlaythrough();
                 }
-            }, 2000);
+            }, 5000);
         },
         stopPlayerInterval: function() {
             $interval.cancel(_playerInterval);

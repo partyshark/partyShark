@@ -42,6 +42,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
 });
 
 controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService) {
+    $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $scope.joinParty = function() {
         partyService.setPartyCode($scope.partyCode);
         netService.createUser(partyService.getPartyCode())
@@ -65,6 +66,7 @@ controllersModule.controller('joinPartyController', function($scope, $rootScope,
 });
 
 controllersModule.controller('startPartyController', function($scope, $rootScope, $location, partyService, optionsService, netService) {
+    $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $rootScope.topButtons = [];
     $scope.genres = [{
         value: null,
@@ -240,6 +242,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     var refresh = $interval(function(){
         //Update playlist
         fetchPlaylist();
+
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
         //admins poll on player transfer requests
@@ -407,7 +410,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             $.notify("Could not send pause.", "error");
         });
     }
-    $rootScope.skip = function() {
+    $rootScope.veto = function() {
         netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
             .then(function(response) {
                 netService.getPlaylist(partyService.getPartyCode())

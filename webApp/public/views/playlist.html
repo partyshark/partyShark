@@ -17,11 +17,15 @@
                                     <div class='media song'>
                                         <div class='media-left'>
                                              <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
+                                             <center><p>{{playthrough.song.year}}</p><center>
                                         </div>
                                         <div class='media-body'>
-                                            <h4 class='media-heading'>{{playthrough.song.title}}</h4>
-                                            <p>{{playthrough.song.artist}}</p>
+                                            <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
+                                            
+                                            </h4>
+                                            <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
                                             <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
+                                            <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
                                         </div>
                                         <div class="upvote">
                                             <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
