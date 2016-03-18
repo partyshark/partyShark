@@ -26,7 +26,7 @@
                       </div>
                   </div>
                   <div class="form-group">
-                    <label for="genreSelect">Default Radio Genre on Empty Playlist: {{genreValue.label}}</label>
+                    <label for="genreSelect">Default Radio Genre on Empty Playlist: {{genreValueLabel}}</label>
                     <select ng-show="isAdmin" id="genreSelect"class="form-control" ng-model="genreValue" ng-init="genreValue = genres[0]" ng-options="genre as genre.label for genre in genres"></select>
                   </div>
 

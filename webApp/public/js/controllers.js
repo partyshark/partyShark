@@ -18,7 +18,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
         netService.leaveParty()
             .then(function(data) {
                 $scope.isPlayer = false;
-                $interval.cancel($scope.playerPromise);
+                playerService.stopPlayerInterval();
                 $scope.topButtons.splice(0,$scope.topButtons.length);
                 $location.path('/');
                 $.notify("Left party sucessfully!", "success");
@@ -132,6 +132,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
         .then(function(res){
             $scope.currMaxQueue = optionsService.getMaxQueueSize();
             $scope.currMaxParticipants = optionsService.getNumParticipants();
+            $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
         }, function(error){
             console.log(error);
         });
@@ -242,6 +243,12 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     var refresh = $interval(function(){
         //Update playlist
         fetchPlaylist();
+
+        var playthrough = playlistService.getTopPlaythrough();
+        if(playthrough) {
+            $("#slider_seek").find('.bar').css('width', (100*playthrough.completed_duration) + '%');
+        }
+
         //update party settings
         netService.getPartySettings().then(function(res){}, function(error){console.log(error);});
         //admins poll on player transfer requests
@@ -274,7 +281,6 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                         }
                     }
             }, function(error){console.log(error);});
-
     }, 5000);
 
     $scope.$on('$destroy', function() {

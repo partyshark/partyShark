@@ -107,6 +107,22 @@ servicesModule.service('optionsService', function() {
 		},
         setDefaultGenre: function(genre) {
             _defaultGenre = genre;
+        },
+        getDefaultGenreLabel: function() {
+            if(_defaultGenre ==  null)
+                return 'None';
+            switch(_defaultGenre) {
+                case 0:
+                    return 'Classic Rock';
+                case 1:
+                    return;
+                case 2:
+                    return;
+                case 3:
+                    return 'Country';
+                case 4:
+                    return 'Top Hits';
+            }
         }
 	}
 });
@@ -159,7 +175,7 @@ servicesModule.service('playlistService', function() {
                 return true; 
             }
             return false;
-		}
+		},
 	}
 });
 
@@ -369,12 +385,13 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 )
                 .then(function(response) {
                     var result = response.data;
+
                     var song = {
                        'code': result.id,
                        'title': result.title_short,
                        'duration': result.duration * 1000,
                        'artist': result.artist.name,
-                       'art': result.album.cover,
+                       'art': result.album.cover_small,
                        'year': result.release_date.split('-')[0]
                     };
 
@@ -476,7 +493,8 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
         _player,
         _playerSeesEmpty = true,
         _playingRadio = false,
-        _currPlayingCode;
+        _currPlayingCode,
+        _currDurationPercent;
 
     function getRadioStation() {
         var genre = optionsService.getDefaultGenre();
@@ -551,6 +569,13 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                                 DZ.player.pause();
                         }
 
+                        //update completed duration
+                        netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, null, _currDurationPercent)
+                            .then(function(success){
+                                console.log("duration updated");
+                            }, function(error){
+                                console.log(error);
+                            });
                     }, function(error){
                         console.log(error);
                         $.notify("Could not check play status", "error");
@@ -595,13 +620,12 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
             });
         },
         subscribeEvents: function() {
-            DZ.Event.subscribe('player_position', function(arg){
-                $("#slider_seek").find('.bar').css('width', (100*arg[0]/arg[1]) + '%');
-            });
-
             DZ.Event.subscribe('current_track', function(track) {
                 $rootScope.trackTitle = track.track.title;
                 $rootScope.trackArtist = track.track.artist.name;
+            });
+            DZ.Event.subscribe('player_position', function(arg){
+                _currDurationPercent = arg[0]/arg[1];
             });
         },
         playNextPlaythrough: function() {
