@@ -610,6 +610,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                 _currPlayingCode = playthrough.code;
                 _playerSeesEmpty = false;
                 _playingRadio = false;
+                $rootScope.isPlayingRadio = _playingRadio;
                 DZ.player.playTracks([playthrough.song_code]);
                 $.notify("Playing next song in party.", "info");
             }
@@ -621,6 +622,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                         $.notify("No more playthroughs in playlist, playing radio.", "info");
                         DZ.player.playRadio(station);
                         _playingRadio = true;
+                        $rootScope.isPlayingRadio = _playingRadio;
                     }
                 } 
             }

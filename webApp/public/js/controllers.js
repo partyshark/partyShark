@@ -314,7 +314,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             playerService.startPlayerInterval();
         }
         else {
-            $.notify("Flash Player is needed to initialize player.", "error");
+            $.notify("Flash Player is needed to be the player. Cannot be the player.", "error");
         }
     }
 
