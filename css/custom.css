@@ -1,0 +1,27 @@
+.ps_m-v-1 { margin: 5px auto; }
+.ps_m-v-2 { margin: 10px auto; }
+
+.ps_upvote { color: lime; }
+.ps_downvote { color: red; }
+
+.ps_active-btn {
+    background-color: #69d2e7;
+    color: white!important;
+ }
+
+.ps_now-playing {
+    border: solid #69d2e7 4px;
+    background-color: #FDB480;
+}
+
+.ps_album-art {
+    height: 100%;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: top;
+}
+
+.ps_compressor-h {
+    padding-left: 20px;
+    padding-right: 20px;
+}
