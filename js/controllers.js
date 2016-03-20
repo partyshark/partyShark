@@ -1,47 +1,58 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
-    $scope.isPlayer = false;
-    $scope.isAdmin = false;
+controllersModule.controller('NavController', function($scope, $interval, $route, $location, $rootScope, partyService, netService, playerService, NavService, PartyService) {
+    $scope.nav = NavService;
 
-    //Cancel interval if not player
-    //playerService.stopPlayerInterval();
+    $scope.buttonMap = {
+        'playlist': {
+            'click': function() {
+                $location.path('/'+PartyService.code+'/playlist');
+            }
+        },
+        'search': {
+            'click': function() {
+                $location.path('/'+PartyService.code+'/search');
+            }
+        },
+        'exit': {
+            'click': function() {
+                netService.leaveParty()
+                    .then(
+                        function(data) {
+                            $rootScope.party = null;
+                            playerService.stopPlayerInterval();
+                            $location.path('/');
+                            $.notify("Left party sucessfully!", "success");
+                        },
+                        function(error) {
+                            console.log(error);
+                            $.notify("Error leaving party, server will fix this eventually...", "error");
+                        }
+                    );
+            }
+        },
+        'options': {
+            'click': function() {
+                $location.path('/'+PartyService.code+'/options');
+            }
+        },
+        'play': {
+            'click': function() {
+                // Pause the party
+            },
+            'displayText': function() {
+                return (PartyService.is_playing) ? 'pause' : 'play';
+            },
+            'show': function() {
+                return PartyService.is_admin;
+            }
+        }
+    }
 
-    $scope.playlist = function() {
-        $location.path('/'+partyService.getPartyCode()+'/playlist');
-    }
-    $scope.search = function() {
-        $location.path('/'+partyService.getPartyCode()+'/search');
-    }
-    $scope.exit = function() {
-        //replace with exit party net service call
-        netService.leaveParty()
-            .then(function(data) {
-                $scope.isPlayer = false;
-                playerService.stopPlayerInterval();
-                $scope.topButtons.splice(0,$scope.topButtons.length);
-                $location.path('/');
-                $.notify("Left party sucessfully!", "success");
-            }, function(error) {
-                console.log(error);
-                $.notify("Error leaving party, server will fix this eventually...", "error");
-            });
-    }
-    $scope.options = function() {
-        $location.path('/'+partyService.getPartyCode()+'/options');
-    }
-    $scope.sendContact = function() {
-        netService.sendContact({
-            "name": $scope.contactName,
-            "email": $scope.contactEmail,
-            "phone": $scope.contactPhone,
-            "message": $scope.contactMessage
-        });
-        $.notify("Message has been sent", "success");
-    }
+
 });
 
-controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService) {
+controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService, NavService) {
     $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $scope.joinParty = function() {
         partyService.setPartyCode($scope.partyCode);
@@ -111,8 +122,9 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
-    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService, NavService) {
+    NavService.activeButtonIds = ["playlist", "search", "options", "exit"];
+
     $scope.genres = [{
         value: null,
         label: 'None'
@@ -223,8 +235,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
-	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
+controllersModule.controller('playlistController', function($scope, $rootScope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService, NavService) {
+	NavService.activeButtonIds = ["playlist", "search", "options", "exit"];
 
     //playerService.setPlayingRadio(false);
     //playerService.setPlayerSeesEmpty(true);
