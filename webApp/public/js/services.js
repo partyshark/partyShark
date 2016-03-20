@@ -365,7 +365,6 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     optionsService.setDefaultGenre(response.data.default_genre);
                     optionsService.setNumParticipants(response.data.user_cap);
                     optionsService.setMaxQueueSize(response.data.playthrough_cap);
-                    console.log(optionsService.getDefaultGenre());
                     return response;
                 }, function(response) {
                     return $q.reject(response);
@@ -569,13 +568,15 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                                 DZ.player.pause();
                         }
 
-                        //update completed duration
+                        //update completed duration if playing from playlist
+                        if (!_playerSeesEmpty) {
                         netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, null, _currDurationPercent)
                             .then(function(success){
-                                console.log("duration updated");
+                                console.log(success.completed_ratio);
                             }, function(error){
                                 console.log(error);
                             });
+                        }
                     }, function(error){
                         console.log(error);
                         $.notify("Could not check play status", "error");

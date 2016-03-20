@@ -246,7 +246,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
 
         var playthrough = playlistService.getTopPlaythrough();
         if(playthrough) {
-            $("#slider_seek").find('.bar').css('width', (100*playthrough.completed_duration) + '%');
+            $("#slider_seek").find('.bar').css('width', (100*playthrough.completed_ratio) + '%');
         }
 
         //update party settings
