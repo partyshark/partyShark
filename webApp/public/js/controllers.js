@@ -26,7 +26,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
                 $scope.isPlayer = false;
                 $scope.isAdmin = false;
                 $scope.isPlayingRadio = false;
-                $location.path('/');
+                $location.path('/');//test
                 $.notify("Left party sucessfully!", "success");
             }, function(error) {
                 console.log(error);
