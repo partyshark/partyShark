@@ -3,7 +3,7 @@ var controllersModule = angular.module('controllersModule',['servicesModule']);
 controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
-
+    $rootScope.displayName = "PartyShark";
     //Cancel interval if not player
     //playerService.stopPlayerInterval();
 
@@ -226,9 +226,13 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
+    // $scope.passSearch = function() {
+    //     $rootScope.search();
+    // }
     //playerService.setPlayingRadio(false);
     //playerService.setPlayerSeesEmpty(true);
 
+    $rootScope.displayName = "Ahoy, " + partyService.getDisplayName() + "!";
     //Check if user is admin
     netService.isAdmin().then(function(res) {
         if(res)

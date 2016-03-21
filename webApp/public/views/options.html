@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-lg-12 text-center">
                 <h2>Options</h2>
-                <hr class="star-primary">
+                <hr class="star-primary"></hr>
                 <p>Please select the desired options for your party</p>
             </div>
         </div>
@@ -36,16 +36,19 @@
                   </div>
 
                   <div class="form-group">
+                    <label>
+                      <b>Promote to Admin</b> - Enter the provided code to be promoted to admin
+                    </label>
                   <div class="input-group" ng-hide="showAdminControl" style="width: 50%;">
-                    <input class="form-control" type="number" ng-model="adminCode" placeholder="Admin Code"></input>
+                    
+                    <input class="form-control" type="text" ng-model="adminCode" placeholder="Admin Code">
                     <span class="input-group-btn">
-                      <button class="btn btn-primary" type="button" ng-click="promoteUser();">Promote</button>
+                      <button class="btn btn-primary" ng-click="promoteUser();">Promote</button>
                     </span>
                   </div>
                 </div>
 
-
-                  <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request Player</button>
+                  <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
                 </form>
             </div>
         </div>

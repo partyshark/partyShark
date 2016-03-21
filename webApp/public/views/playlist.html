@@ -3,73 +3,72 @@
 			<section>
 				<div class="row" style="height:400px;overflow:auto;">
 					<div class="container">
-						<center><h3>Playlist is empty! Add songs to the playlist by <a href="#search">searching.</a></h3></center>
+						<center><h3>Playlist is empty! Add songs to the playlist by <a href="">searching.</a></h3></center>
 					</div>
 				</div>
 			</section>
 		</div>
         <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
            <body class="index">
-    <section id="nowplaying">
-            <div class="row">
-                            <!-- First playthrough tile -->
-                            <div ng-repeat-start="playthrough in playlist | orderBy:'position':false" ng-if="$first">
-                                <div class='well well-sm' ng-model="playthrough.position">
-                                    <div class='media song'>
-                                        <div class='media-left'>
-                                             <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
-                                             <center><p>{{playthrough.song.year}}</p><center>
-                                        </div>
-                                        <div class='media-body'>
-                                            <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
-                                            </h4>
-                                            <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
-                                            <p> Now Playing </p>
-                                                <div id="slider_seek" class="progressbarplay">
-                                                    <div class="bar"></div>
-                                                </div>
-                                                <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
-                                            <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
-                                            <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
-                                        </div>
-                                        <div class="upvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
-                                        </div>
-                                        <div class="downvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-down fa-2x"></i></button>
-                                        </div>  
+                <section id="nowplaying">
+                    <div class="row">
+                        <!-- First playthrough tile -->
+                        <div ng-repeat-start="playthrough in playlist | orderBy:'position':false" ng-if="$first">
+                            <div class='well well-sm' ng-model="playthrough.position">
+                                <div class='media song'>
+                                    <div class='media-left'>
+                                         <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
+                                         <center><p>{{playthrough.song.year}}</p><center>
                                     </div>
+                                    <div class='media-body'>
+                                        <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
+                                        </h4>
+                                        <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
+                                        <p> Now Playing </p>
+                                            <div id="slider_seek" class="progressbarplay">
+                                                <div class="bar"></div>
+                                            </div>
+                                            <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
+                                        <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
+                                        <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
+                                    </div>
+                                    <div class="upvote">
+                                        <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
+                                    </div>
+                                    <div class="downvote">
+                                        <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-down fa-2x"></i></button>
+                                    </div>  
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Remaining playthrough tiles -->
-                            <div ng-repeat-end="playthrough in playlist | orderBy:'position':false" ng-if="!$first">
-                                <div class='well well-sm' ng-model="playthrough.position">
-                                    <div class='media song'>
-                                        <div class='media-left'>
-                                             <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
-                                             <center><p>{{playthrough.song.year}}</p><center>
-                                        </div>
-                                        <div class='media-body'>
-                                            <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
-                                            </h4>
-                                            <p>{{playthrough.song.duration | date:'mm:ss'}} <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
-                                            <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
-                                            <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
-                                        </div>
-                                        <div class="upvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
-                                        </div>
-                                        <div class="downvote">
-                                            <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-down fa-2x"></i></button>
-                                        </div>  
+                        <!-- Remaining playthrough tiles -->
+                        <div ng-repeat-end="playthrough in playlist | orderBy:'position':false" ng-if="!$first">
+                            <div class='well well-sm' ng-model="playthrough.position">
+                                <div class='media song'>
+                                    <div class='media-left'>
+                                         <img class='media-object' ng-src='{{playthrough.song.art}}' alt='No art' style="width: 96px;">
+                                         <center><p>{{playthrough.song.year}}</p><center>
                                     </div>
+                                    <div class='media-body'>
+                                        <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
+                                        </h4>
+                                        <p>{{playthrough.song.duration | date:'mm:ss'}} <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
+                                        <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
+                                        <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
+                                    </div>
+                                    <div class="upvote">
+                                        <button class="btn" ng-click="votePlaythrough(playthrough.code, 0);"><i class="fa fa-arrow-up fa-2x"></i></button>
+                                    </div>
+                                    <div class="downvote">
+                                        <button class="btn" ng-click="votePlaythrough(playthrough.code, 1);"><i class="fa fa-arrow-down fa-2x"></i></button>
+                                    </div>  
                                 </div>
                             </div>
-
+                        </div>
                     </table>
                 </div>
-        </body>
-    </section>
-        </div>
+            </body>
+        </section>
+    </div>
 </body>
