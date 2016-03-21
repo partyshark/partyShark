@@ -392,7 +392,8 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                        'duration': result.duration * 1000,
                        'artist': result.artist.name,
                        'art': result.album.cover_small,
-                       'year': result.release_date.split('-')[0]
+                       'year': result.release_date.split('-')[0],
+                       'album': result.album.title
                     };
 
                     cacheService.addSongCache(song);

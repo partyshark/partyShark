@@ -12,11 +12,11 @@
                 <form>
                   <div class="form-group">
                     <label for="numParticipants">Maximum Number of Participants: {{currMaxParticipants}}</label>
-                    <input ng-show="isAdmin" ng-model="numParticipants" type="number" class="form-control" id="numParticipants" placeholder="{{currMaxParticipants}}" min="0">
+                    <input ng-show="isAdmin" ng-model="numParticipants" type="number" class="form-control" id="numParticipants" placeholder="{{currMaxParticipants}}" min="0"></input>
                   </div>
                   <div class="form-group">
                     <label for="maxQueue">Maximum Size of the Song Queue: {{currMaxQueue}}</label>
-                    <input ng-show="isAdmin" ng-model="maxQueue" type="number" class="form-control" id="maxQueue" placeholder="{{currMaxQueue}}" min="0">
+                    <input ng-show="isAdmin" ng-model="maxQueue" type="number" class="form-control" id="maxQueue" placeholder="{{currMaxQueue}}" min="0"></input>
                   </div>
                   <div class="form-group">
                       <div class="checkbox">
@@ -41,7 +41,7 @@
                     </label>
                   <div class="input-group" ng-hide="showAdminControl" style="width: 50%;">
                     
-                    <input class="form-control" type="text" ng-model="adminCode" placeholder="Admin Code">
+                    <input class="form-control" type="text" ng-model="adminCode" placeholder="Admin Code"></input>
                     <span class="input-group-btn">
                       <button class="btn btn-primary" ng-click="promoteUser();">Promote</button>
                     </span>
