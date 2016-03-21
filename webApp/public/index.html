@@ -69,16 +69,16 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="" class="navbar-brand">PartyShark</a>
+                <p class="navbar-brand">{{displayName}}</p>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <button ng-show="isAdmin" class="btn navbar-btn btn-default" ng-click="play();"><i class="fa fa-play fa-2x"></i></button>
-                    <button ng-show="isAdmin" class="btn navbar-btn btn-default" ng-click="pause();"><i class="fa fa-pause fa-2x"></i></button>
+                    <a class="audiocontrol" ng-show="isAdmin" ng-click="play();"><i class="fa fa-play fa-lg"></i></a>
+                    <a class="audiocontrol" ng-show="isAdmin" ng-click="pause();"><i class="fa fa-pause fa-lg"></i></a>
                     
                     <!--<button ng-show="isAdmin" class="btn btn-default" ng-click="veto();"><i class="fa fa-ban fa-2x"></i></button>-->
-                    <button ng-show="isPlayer" class="btn navbar-btn btn-default" ng-click="loginPlayer();"><i class="fa fa-sign-in fa-2x"></i></button>
+                    <button ng-show="isPlayer" class="btn navbar-btn btn-default" ng-click="loginPlayer();"><i class="fa fa-sign-in"></i></button>
                 </ul>
                 <ul class="nav navbar-nav navbar-right" ng-controller="mainController">
                     <li class="hidden">
@@ -94,28 +94,25 @@
         </div>
         <!-- /.container-fluid -->
     </nav>
-            <div ng-show="isPlayingRadio">
-            <section>
-                <div id="dz-root"></div>
-                
-                <div class="row">
-                    <div class="col-lg-2"></div>
-                    <div class="col-lg-8">
-                        <div class="media">
-                            <div class='media-left'>
-                            </div>
-                            <div class="media-body">
-                                <h1>Playing Radio</h1>
-                                <h2>{{trackTitle}} - {{trackArtist}}</h2>
-                            </div>
+    <div ng-show="isPlayingRadio">
+        <section>
+            <div id="dz-root"></div>
+            <div class="row">
+                <div class="col-lg-2"></div>
+                <div class="col-lg-8">
+                    <div class="media">
+                        <div class='media-left'>
                         </div>
-                
-                        
-                    </div>
-                    <div class="col-lg-2"></div>
+                        <div class="media-body">
+                            <h1>Playing Radio</h1>
+                            <h2>{{trackTitle}} - {{trackArtist}}</h2>
+                        </div>
+                    </div>   
                 </div>
-            </section>
+                <div class="col-lg-2"></div>
             </div>
+        </section>
+    </div>
     <div ng-view></div>
     <footer class="text-center">
         <div class="footer-below">
@@ -128,5 +125,5 @@
             </div>
         </div>
     </footer>
-    </body>
+</body>
 </html>

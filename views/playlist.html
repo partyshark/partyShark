@@ -1,0 +1,71 @@
+    <body class="index">
+		<div ng-show="emptyPlaylist">
+			<section>
+				<div class="row" style="height:400px;overflow:auto;">
+					<div class="container">
+						<h3>Playlist is empty! Add songs to the playlist by selecting search from above</h3>
+					</div>
+				</div>
+			</section>
+		</div>
+
+        <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
+            <section>
+                <div class="row">
+
+                    <!-- First playthrough tile -->
+                    <div ng-repeat-start="playthrough in playlist | orderBy:'position':false" ng-if="$first">
+                        <div class='well well-sm media song ps_now-playing' ng-model="playthrough.position">
+
+                            <div class='media-body'>
+                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt='Album Art not Available'>
+
+                                <div style="height: 100%; display: inline-block">
+                                    <h3 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h3>
+                                    <h4>{{playthrough.song.year}}</h4>
+                                    <h4>{{playthrough.song.duration * playthrough.completed_ratio | date:'mm:ss'}} / {{playthrough.song.duration | date:'mm:ss'}}</h4>
+
+                                    <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
+                                </div>
+
+                            </div>
+
+                            <div class="media-right text-center">
+                                <button class="ps_upvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 0}" ng-click="votePlaythrough(playthrough, 0);"><i class="fa fa-arrow-circle-up fa-2x"></i></button>
+                                <h3 class="text-center ps_m-v-1">{{playthrough.upvotes - playthrough.downvotes}}</h3>
+                                <button class="ps_downvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 1}" ng-click="votePlaythrough(playthrough, 1);"><i class="fa fa-arrow-circle-down fa-2x"></i></button>
+                            </div>
+
+                            <div class="ps_progress-bar ps_m-v-2"></div>
+
+                        </div>
+                    </div>
+
+                    <!-- Remaining playthrough tiles -->
+                    <div class="ps_compressor-h" ng-repeat-end="playthrough in playlist | orderBy:'position':false" ng-if="!$first">
+                        <div class='well well-sm media' ng-model="playthrough.position">
+
+                            <div class='media-body'>
+                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt='Album Art not Available'>
+
+                                <div style="height: 100%; display: inline-block">
+                                    <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h4>
+                                    <p>{{playthrough.song.year}}</p>
+                                    <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
+
+                                    <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
+                                </div>
+                            </div>
+
+                            <div class="media-right text-center">
+                                <button class="ps_upvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 0}" ng-click="votePlaythrough(playthrough, 0);"><i class="fa fa-arrow-circle-up fa-2x"></i></button>
+                                <h3 class="text-center ps_m-v-1">{{playthrough.upvotes - playthrough.downvotes}}</h3>
+                                <button class="ps_downvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 1}" ng-click="votePlaythrough(playthrough, 1);"><i class="fa fa-arrow-circle-down fa-2x"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+        </section>
+    </div>
+</body>
