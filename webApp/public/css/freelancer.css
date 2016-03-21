@@ -10,7 +10,9 @@ p.small {
     font-size: 16px;
 }
 
-a,
+a {
+    color: #fa6900;
+}
 a:hover,
 a:focus,
 a:active,

@@ -3,7 +3,7 @@
 			<section>
 				<div class="row" style="height:400px;overflow:auto;">
 					<div class="container">
-						<h3>Playlist is empty! Add songs to the playlist by selecting search from above</h3>
+						<center><h3>Playlist is empty! Add songs to the playlist by <a href="#search">searching.</a></h3></center>
 					</div>
 				</div>
 			</section>
@@ -28,7 +28,7 @@
                                                 <div id="slider_seek" class="progressbarplay">
                                                     <div class="bar"></div>
                                                 </div>
-                                                <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban fa-2x"></i></button></p>
+                                                <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
                                             <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
                                             <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
                                         </div>
@@ -53,7 +53,7 @@
                                         <div class='media-body'>
                                             <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}<span>     </span>
                                             </h4>
-                                            <p>{{playthrough.song.duration | date:'mm:ss'}} <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban fa-2x"></i></button></p>
+                                            <p>{{playthrough.song.duration | date:'mm:ss'}} <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);"><i class="fa fa-ban"></i></button></p>
                                             <p><i class="fa fa-thumbs-o-up fa-lg" id='upvotes'></i> {{playthrough.upvotes}}&nbsp;&nbsp;<i class="fa fa-thumbs-o-down fa-lg" id='downvotes'></i> {{playthrough.downvotes}}&nbsp;&nbsp;</p>
                                             <p>Score: {{playthrough.upvotes - playthrough.downvotes}}</p>
                                         </div>
