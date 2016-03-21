@@ -449,6 +449,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
         },
         leaveParty: function() {
+            console.log(partyService.getPartyCode());
             return $http.delete(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
                         headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {

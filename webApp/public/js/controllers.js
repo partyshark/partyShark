@@ -22,6 +22,10 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
                 $scope.isPlayer = false;
                 playerService.stopPlayerInterval();
                 $scope.topButtons.splice(0,$scope.topButtons.length);
+                $('#dz-root').empty();
+                $scope.isPlayer = false;
+                $scope.isAdmin = false;
+                $scope.isPlayingRadio = false;
                 $location.path('/');
                 $.notify("Left party sucessfully!", "success");
             }, function(error) {
@@ -240,6 +244,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                                 if (response.data.player == partyService.getDisplayName()) {
                                     $location.path('/'+partyService.getPartyCode()+'/playlist');
                                     $.notify("You have been approved for player", "success");
+                                    $interval.cancel(playerPoll);
                                 }
                             }, function(error){console.log(error);});
                             $interval.cancel(playerPoll);
@@ -257,7 +262,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
+controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
 	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
 
     //playerService.setPlayingRadio(false);
@@ -392,7 +397,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
             .then(function(data) {
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
-                populatePlaylist();
+                return populatePlaylist();
             }, function(error) {
                 console.log(error);
                 //$.notify("Could not get playlist.", "error");
@@ -400,17 +405,21 @@ controllersModule.controller('playlistController', function($scope, $route, $int
     }  
 
     function populatePlaylist() {
-        var playlist = playlistService.getPlaylist(),
-            i;
+        var playlist = playlistService.getPlaylist();
+        var awaiting = [];
+
         playlist.forEach(function(item) {
-            netService.getSong(item.song_code)
+            var promise = netService.getSong(item.song_code)
                 .then(function(data) {
                     item.song = data;
                 }, function(error) {
                     console.log("Could not get song details for songCode: "+playlist[i].song_code);
-                }); 
-        }) 
+                });
+            awaiting.push(promise);
+        });
+
         $scope.playlist = playlistService.getPlaylist();
+        return $q.all(awaiting);
     }
 
     $scope.votePlaythrough = function(playthroughCode, vote) {
