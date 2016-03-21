@@ -1,14 +1,14 @@
-
     <body class="index">
-        <div ng-show="emptyPlaylist">
-            <section>
-                <div class="row" style="height:400px;overflow:auto;">
-                    <div class="container">
-                        <h3>Playlist is empty! Add songs to the playlist by selecting search from above</h3>
-                    </div>
-                </div>
-            </section>
-        </div>
+		<div ng-show="emptyPlaylist">
+			<section>
+				<div class="row" style="height:400px;overflow:auto;">
+					<div class="container">
+						<h3>Playlist is empty! Add songs to the playlist by selecting search from above</h3>
+					</div>
+				</div>
+			</section>
+		</div>
+
         <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
             <section>
                 <div class="row">
@@ -22,11 +22,10 @@
 
                                 <div style="height: 100%; display: inline-block">
                                     <h3 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h3>
-                                    <h4>{{playthrough.song.album}}</h4>
+                                    <h4>{{playthrough.song.year}}</h4>
                                     <h4>{{playthrough.song.duration * playthrough.completed_ratio | date:'mm:ss'}} / {{playthrough.song.duration | date:'mm:ss'}}</h4>
 
                                     <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
-                                    <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
 
                             </div>
@@ -40,7 +39,6 @@
                             <div class="ps_progress-bar ps_m-v-2"></div>
 
                         </div>
-                        <hr class="star-primary"></hr>
                     </div>
 
                     <!-- Remaining playthrough tiles -->
@@ -52,11 +50,10 @@
 
                                 <div style="height: 100%; display: inline-block">
                                     <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h4>
-                                    <p>{{playthrough.song.album}}</p>
+                                    <p>{{playthrough.song.year}}</p>
                                     <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
 
                                     <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
-                                    <p>Suggested by {{playthrough.suggester}}</p>
                                 </div>
                             </div>
 
@@ -67,6 +64,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
         </section>
     </div>

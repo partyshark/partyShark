@@ -3,9 +3,7 @@ var controllersModule = angular.module('controllersModule',['servicesModule']);
 controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
-    $rootScope.progressValue = 0;
     $rootScope.displayName = "PartyShark";
-
     //Cancel interval if not player
     //playerService.stopPlayerInterval();
 
@@ -22,11 +20,7 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
                 $scope.isPlayer = false;
                 playerService.stopPlayerInterval();
                 $scope.topButtons.splice(0,$scope.topButtons.length);
-                $('#dz-root').empty();
-                $scope.isPlayer = false;
-                $scope.isAdmin = false;
-                $scope.isPlayingRadio = false;
-                $location.path('/');//test
+                $location.path('/');
                 $.notify("Left party sucessfully!", "success");
             }, function(error) {
                 console.log(error);
@@ -45,9 +39,11 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
         });
         $.notify("Message has been sent", "success");
     }
+
+
 });
 
-controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService) {
+controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, netService, partyService, NavService) {
     $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $scope.joinParty = function() {
         partyService.setPartyCode($scope.partyCode);
@@ -78,29 +74,14 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
         value: null,
         label: 'None'
       }, {
-        value: 0,
-        label: 'Classic Rock'
-      }, {
-        value: 1,
-        label: 'Metal'
-      }, {
-        value: 2,
-        label: 'Jazz'
-      }, {
-        value: 3,
-        label: 'Country'
-      }, {
         value: 4,
         label: 'Top Hits'
       }, {
-        value: 5,
-        label: 'Classical'
+        value: 0,
+        label: 'Classic Rock'
       }, {
-        value: 6,
-        label: 'Folk'
-      }, {
-        value: 7,
-        label: 'Electronic'
+        value: 3,
+        label: 'Country'
       }];
 
     $scope.startParty = function() {
@@ -132,35 +113,21 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
-    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService, NavService) {
+    NavService.activeButtonIds = ["playlist", "search", "options", "exit"];
+
     $scope.genres = [{
         value: null,
         label: 'None'
       }, {
-        value: 0,
-        label: 'Classic Rock'
-      }, {
-        value: 1,
-        label: 'Metal'
-      }, {
-        value: 2,
-        label: 'Jazz'
-      }, {
-        value: 3,
-        label: 'Country'
-      }, {
         value: 4,
         label: 'Top Hits'
       }, {
-        value: 5,
-        label: 'Classical'
+        value: 0,
+        label: 'Classic Rock'
       }, {
-        value: 6,
-        label: 'Folk'
-      }, {
-        value: 7,
-        label: 'Electronic'
+        value: 3,
+        label: 'Country'
       }];
 
     //update party settings
@@ -241,11 +208,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                     netService.getPlayerTransferRequest(data.data.code).then(function(response){
                         if(response.data.status) {
                             netService.getParty(partyService.getPartyCode()).then(function(response){
-                                if (response.data.player == partyService.getDisplayName()) {
-                                    $location.path('/'+partyService.getPartyCode()+'/playlist');
-                                    $.notify("You have been approved for player", "success");
-                                    $interval.cancel(playerPoll);
-                                }
+                                $location.path('/'+partyService.getPartyCode()+'/playlist');
+                                $.notify("You have been approved for player", "success");
                             }, function(error){console.log(error);});
                             $interval.cancel(playerPoll);
                         }
@@ -262,8 +226,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
-	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
+controllersModule.controller('playlistController', function($scope, $rootScope, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService, NavService) {
+	NavService.activeButtonIds = ["playlist", "search", "options", "exit"];
 
     // $scope.passSearch = function() {
     //     $rootScope.search();
@@ -289,7 +253,7 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
 
         var playthrough = playlistService.getTopPlaythrough();
         if(playthrough) {
-            $rootScope.progressValue = playthrough.completed_ratio*100;
+            $("#slider_seek").find('.bar').css('width', (100*playthrough.completed_duration) + '%');
         }
 
         //update party settings
@@ -341,12 +305,10 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
                 DZ.Event.subscribe('track_end', function(arg){
                     netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
                         .then(function(response) {
-                            console.log(response);
                             netService.getPlaylist(partyService.getPartyCode())
                                 .then(function(data) {
                                     $scope.emptyPlaylist = playlistService.isEmpty();
                                     $scope.playlist = playlistService.getPlaylist();
-                                    console.log(playlistService.getPlaylist().length);
                                     populatePlaylist();
                                     playerService.playNextPlaythrough();
                                 }, function(error) {
@@ -401,42 +363,34 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
             .then(function(data) {
                 $scope.emptyPlaylist = playlistService.isEmpty();
                 $scope.playlist = playlistService.getPlaylist();
-                return populatePlaylist();
+                populatePlaylist();
             }, function(error) {
                 console.log(error);
-                //$.notify("Could not get playlist.", "error");
+                $.notify("Could not get playlist.", "error");
             });
     }  
 
     function populatePlaylist() {
-        var playlist = playlistService.getPlaylist();
-        var awaiting = [];
-
+        var playlist = playlistService.getPlaylist(),
+            i;
         playlist.forEach(function(item) {
-            var promise = netService.getSong(item.song_code)
+            netService.getSong(item.song_code)
                 .then(function(data) {
                     item.song = data;
                 }, function(error) {
                     console.log("Could not get song details for songCode: "+playlist[i].song_code);
-                });
-            awaiting.push(promise);
-        });
-
+                }); 
+        }) 
         $scope.playlist = playlistService.getPlaylist();
-        return $q.all(awaiting);
     }
 
-    $scope.votePlaythrough = function(playthroughCode, vote) {
-        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthroughCode, vote)
+    $scope.votePlaythrough = function(playthrough, vote) {
+        if (playthrough.vote == vote) { vote = null; }
+        playthrough.vote = vote;
+
+        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthrough.code, vote)
             .then(function(response) {
                 $.notify("Vote was added!", "success");
-                playlistService.getPlaylist().findIndex(function(element, index, array) {
-                    if(element.code == playthroughCode) {
-                        element.upvotes = response.upvotes;
-                        element.downvotes = response.downvotes;
-                        element.position = response.position;
-                    }
-                });
                 $scope.playlist = playlistService.getPlaylist();
             },
             function(error) {
@@ -528,14 +482,3 @@ controllersModule.controller('searchController', function($scope, $location, $ro
             });
     }
 });
-
-
-
-
-
-
-
-
-
-
-
