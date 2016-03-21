@@ -74,14 +74,29 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
         value: null,
         label: 'None'
       }, {
-        value: 4,
-        label: 'Top Hits'
-      }, {
         value: 0,
         label: 'Classic Rock'
       }, {
+        value: 1,
+        label: 'Metal'
+      }, {
+        value: 2,
+        label: 'Jazz'
+      }, {
         value: 3,
         label: 'Country'
+      }, {
+        value: 4,
+        label: 'Top Hits'
+      }, {
+        value: 5,
+        label: 'Classical'
+      }, {
+        value: 6,
+        label: 'Folk'
+      }, {
+        value: 7,
+        label: 'Electronic'
       }];
 
     $scope.startParty = function() {
@@ -119,14 +134,29 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
         value: null,
         label: 'None'
       }, {
-        value: 4,
-        label: 'Top Hits'
-      }, {
         value: 0,
         label: 'Classic Rock'
       }, {
+        value: 1,
+        label: 'Metal'
+      }, {
+        value: 2,
+        label: 'Jazz'
+      }, {
         value: 3,
         label: 'Country'
+      }, {
+        value: 4,
+        label: 'Top Hits'
+      }, {
+        value: 5,
+        label: 'Classical'
+      }, {
+        value: 6,
+        label: 'Folk'
+      }, {
+        value: 7,
+        label: 'Electronic'
       }];
 
     //update party settings
@@ -207,8 +237,10 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                     netService.getPlayerTransferRequest(data.data.code).then(function(response){
                         if(response.data.status) {
                             netService.getParty(partyService.getPartyCode()).then(function(response){
-                                $location.path('/'+partyService.getPartyCode()+'/playlist');
-                                $.notify("You have been approved for player", "success");
+                                if (response.data.player == partyService.getDisplayName()) {
+                                    $location.path('/'+partyService.getPartyCode()+'/playlist');
+                                    $.notify("You have been approved for player", "success");
+                                }
                             }, function(error){console.log(error);});
                             $interval.cancel(playerPoll);
                         }

@@ -505,8 +505,10 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                 return 37765;
                 break;
             case 1:
+                return 30901;
                 break;
             case 2:
+                return 31031;
                 break;
             case 3:
                 return 36801;
@@ -514,10 +516,13 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                 return 31061;
                 break;
             case 5:
+                return 30661;
                 break;
             case 6:
+                return 37091;
                 break;
             case 7:
+                return 30851;
                 break;
             default:
                 return -1;
