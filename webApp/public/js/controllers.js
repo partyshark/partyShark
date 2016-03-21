@@ -1,15 +1,18 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
+controllersModule.controller('mainController', function($scope, $interval, $window, $route,$location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
     $rootScope.progressValue = 0;
     $rootScope.displayName = "PartyShark";
 
+    if(partyService.getPartyCode())
+        $window.location.reload();
+
     //Cancel interval if not player
     //playerService.stopPlayerInterval();
 
-    $scope.playlist = function() {
+    $scope.dock = function() {
         $location.path('/'+partyService.getPartyCode()+'/playlist');
     }
     $scope.search = function() {
@@ -20,13 +23,13 @@ controllersModule.controller('mainController', function($scope, $interval, $rout
         netService.leaveParty()
             .then(function(data) {
                 $scope.isPlayer = false;
-                playerService.stopPlayerInterval();
                 $scope.topButtons.splice(0,$scope.topButtons.length);
                 $('#dz-root').empty();
                 $scope.isPlayer = false;
                 $scope.isAdmin = false;
                 $scope.isPlayingRadio = false;
-                $location.path('/');//test
+                $location.path('/');
+                playerService.stopPlayerInterval();
                 $.notify("Left party sucessfully!", "success");
             }, function(error) {
                 console.log(error);
@@ -133,7 +136,7 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
 });
 
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, partyService, optionsService, netService) {
-    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+    $rootScope.topButtons = ["dock", "search", "options", "exit"];
     $scope.genres = [{
         value: null,
         label: 'None'
@@ -166,8 +169,19 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     //update party settings
     netService.getPartySettings()
         .then(function(res){
-            $scope.currMaxQueue = optionsService.getMaxQueueSize();
-            $scope.currMaxParticipants = optionsService.getNumParticipants();
+            var maxQueueSize = optionsService.getMaxQueueSize();
+            var maxNumParticipants = optionsService.getNumParticipants();
+
+            if(maxQueueSize != null)
+                $scope.currMaxQueue = maxQueueSize;
+            else
+                $scope.currMaxQueue = "Unlimited";
+
+            if(maxNumParticipants != null)
+                $scope.currMaxParticipants = maxNumParticipants;
+            else
+                $scope.currMaxParticipants = "Unlimited";
+            
             $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
         }, function(error){
             console.log(error);
@@ -257,13 +271,13 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                 
             }, function(error) {
                 console.log(error);
-                $.notify("Could not promote user.", "error");
+                $.notify("Could not request player.", "error");
             });
     }
 });
 
 controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, playlistService, partyService, optionsService, netService, playerService) {
-	$rootScope.topButtons = ["playlist", "search", "options", "exit"];
+	$rootScope.topButtons = ["dock", "search", "options", "exit"];
 
     // $scope.passSearch = function() {
     //     $rootScope.search();
@@ -339,7 +353,7 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
                 playerService.initializePlayer(function() {$.notify("Player is loaded.","success");});
                 playerService.subscribeEvents();
                 DZ.Event.subscribe('track_end', function(arg){
-                    netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
+                    netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, -1, 9999999)
                         .then(function(response) {
                             console.log(response);
                             netService.getPlaylist(partyService.getPartyCode())
@@ -470,25 +484,6 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
         });
     }
     $rootScope.veto = function(playthroughCode) {
-        /*
-        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
-            .then(function(response) {
-                netService.getPlaylist(partyService.getPartyCode())
-                    .then(function(data) {
-                        $scope.emptyPlaylist = playlistService.isEmpty();
-                        $scope.playlist = playlistService.getPlaylist();
-                        console.log($scope.playlist.length);
-                        populatePlaylist();
-                        playerService.playNextPlaythrough();
-                    }, function(error) {
-                        console.log(error);
-                        $.notify("Could not get playlist.", "error");
-                    });
-            },
-            function(error) {
-                console.log(error);
-                $.notify("Song could not be marked as completed.", "error");
-            });*/
         netService.deletePlaythrough(playthroughCode)
             .then(function(data) {
                 $.notify("Playthrough vetoed", "success");
@@ -510,7 +505,7 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
 
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, partyService, playlistService, netService) {
-    $rootScope.topButtons = ["playlist", "search", "options", "exit"];
+    $rootScope.topButtons = ["dock", "search", "options", "exit"];
     $scope.submitSearch = function() {
         netService.searchSongs($scope.searchParams)
             .then(function(results) {

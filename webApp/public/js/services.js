@@ -128,19 +128,15 @@ servicesModule.service('optionsService', function() {
 });
 
 servicesModule.service('cacheService', function() {
-	_songCache = [];
-	return {
-		isSongCached: function(songCode) {
-			for(var i=0; i<_songCache.length; i++) {
-                if(_songCache[i].code == songCode)
-                    return _songCache[i];
-            }
-            return false;
-		},
-        addSongCache: function(song) {
-            _songCache.push(song);
-        }
-	}
+    var _cache = { };
+    return {
+        isSongCached: function(songCode) {
+           return _cache[songCode];
+        },
+       addSongCache: function(song) {
+           _cache[song.code] = song;
+       }
+    };
 });
 
 servicesModule.service('playlistService', function() {
@@ -316,16 +312,25 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
         },
 		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, ratio) {
+            var data;
+            if (vote == -1) {
+                data = {
+                    "completed_ratio": ratio,
+                } 
+            }
+            else {
+               data = {
+                    "completed_ratio": ratio,
+                    "vote": vote
+                } 
+            }
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
                  headers: {
                    'x-user-code': partyService.getUserName()
                  },
-                 data: {
-                    "completed_ratio": ratio,
-                    "vote": vote
-                }
+                 data: data
             }
             return $http(req)
                 .then(function(response) {
@@ -371,38 +376,60 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                 });
 		},
 		getSong: function(songCode) {
-            var song = cacheService.isSongCached(songCode);
-            if(song) {
-                var deferred = $q.defer();
-                deferred.resolve(song);
-                return deferred.promise;
-            }
-            else {
-                return $http.jsonp(
-                    'https://api.deezer.com/track/'+songCode+'&output=jsonp&callback=JSON_CALLBACK',
-                    { headers: {'x-user-code': partyService.getUserName()} }
-                )
-                .then(function(response) {
-                    var result = response.data;
+           var song = cacheService.isSongCached(songCode);
 
-                    var song = {
-                       'code': result.id,
-                       'title': result.title_short,
-                       'duration': result.duration * 1000,
-                       'artist': result.artist.name,
-                       'art': result.album.cover_small,
-                       'year': result.release_date.split('-')[0],
-                       'album': result.album.title
-                    };
+           function toDataUrl(url, outputFormat){
+               var deferrer = $q.defer();
+               var img = new Image();
+               img.crossOrigin = 'Anonymous';
+               img.onload = function(){
+                   var canvas = document.createElement('CANVAS');
+                   var ctx = canvas.getContext('2d');
+                   var dataURL;
+                   canvas.height = this.height;
+                   canvas.width = this.width;
+                   ctx.drawImage(this, 0, 0);
+                   dataURL = canvas.toDataURL(outputFormat);
+                   deferrer.resolve(dataURL);
+                   canvas = null;
+               };
+               img.src = url;
+               return deferrer.promise;
+           }
 
-                    cacheService.addSongCache(song);
-                    return song;
-                },
-                function(response) {
-                    return $q.reject(response);
-                });
-            }
-        },
+           if(song) {
+               var deferred = $q.defer();
+               deferred.resolve(song);
+               return deferred.promise;
+           }
+           else {
+               return $http.jsonp(
+                   'https://api.deezer.com/track/'+songCode+'&output=jsonp&callback=JSON_CALLBACK',
+                   { headers: {'x-user-code': partyService.getUserName()} }
+               )
+               .then(function(response) {
+                   var result = response.data;
+                   var song = {
+                      'code': result.id,
+                      'title': result.title_short,
+                      'duration': result.duration * 1000,
+                      'artist': result.artist.name,
+                      'year': result.release_date.split('-')[0]
+                   };
+
+                   return toDataUrl(result.album.cover, 'image/jpeg').then(
+                       function(dataUrl) {
+                           song.art = dataUrl;
+                           cacheService.addSongCache(song);
+                           return song;
+                       }
+                   );
+               },
+               function(response) {
+                   return $q.reject(response);
+               })
+           }
+       },
 		searchSongs: function(query) {
             return $http.jsonp('https://api.deezer.com/search?q='+query+'&output=jsonp&callback=JSON_CALLBACK')
                 .then(
@@ -569,7 +596,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                         }
                         //If still player, check playing status
                         else {
-                            if(res.data.is_playing)
+                            if(res.data.is_playing && !_playerSeesEmpty)
                                 DZ.player.play();
                             else
                                 DZ.player.pause();
@@ -577,7 +604,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
 
                         //update completed duration if playing from playlist
                         if (!_playerSeesEmpty) {
-                        netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, null, _currDurationPercent)
+                        netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, -1, _currDurationPercent)
                             .then(function(success){
                             }, function(error){
                                 console.log(error);
@@ -647,13 +674,16 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
             }
             else {
                  _playerSeesEmpty = true;
-                if(!_playingRadio) {
+                if(!_playingRadio && optionsService.getDefaultGenre() != null) {
                     var station = getRadioStation();
                     $.notify("No more playthroughs in playlist, playing radio.", "info");
                     DZ.player.playRadio(station);
                     _playingRadio = true;
                     $rootScope.isPlayingRadio = _playingRadio;
                 } 
+                else{
+                        DZ.player.pause();
+                }
             }
         }
     }

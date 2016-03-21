@@ -18,7 +18,7 @@
                         <div class='well well-sm media song ps_now-playing' ng-model="playthrough.position">
 
                             <div class='media-body'>
-                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt='Album Art not Available'>
+                                <img class="ps_album-art" data-ng-src='{{playthrough.song.art}}' alt=''>
 
                                 <div style="height: 100%; display: inline-block">
                                     <h3 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h3>
@@ -36,8 +36,12 @@
                                 <h3 class="text-center ps_m-v-1">{{playthrough.upvotes - playthrough.downvotes}}</h3>
                                 <button class="ps_downvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 1}" ng-click="votePlaythrough(playthrough, 1);"><i class="fa fa-arrow-circle-down fa-2x"></i></button>
                             </div>
-
-                            <div class="ps_progress-bar ps_m-v-2"></div>
+                            <br>
+                            <div class="progress">
+                              <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{progressValue}}"
+                              aria-valuemin="0" aria-valuemax="100" style="width:{{progressValue}}%">
+                              </div>
+                            </div>
 
                         </div>
                         <hr class="star-primary"></hr>
@@ -48,7 +52,7 @@
                         <div class='well well-sm media' ng-model="playthrough.position">
 
                             <div class='media-body'>
-                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt='Album Art not Available'>
+                                <img class="ps_album-art" data-ng-src='{{playthrough.song.art}}' alt=''>
 
                                 <div style="height: 100%; display: inline-block">
                                     <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h4>
