@@ -315,7 +315,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     return $q.reject(error);
                 });
         },
-		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, duration) {
+		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, ratio) {
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
@@ -323,7 +323,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                    'x-user-code': partyService.getUserName()
                  },
                  data: {
-                    "completed_duration": duration,
+                    "completed_ratio": ratio,
                     "vote": vote
                 }
             }
@@ -497,7 +497,7 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
 
     function getRadioStation() {
         var genre = optionsService.getDefaultGenre();
-        if(!genre === null)
+        if(genre == null)
             return -1;
 
         switch(genre) {
@@ -572,7 +572,6 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                         if (!_playerSeesEmpty) {
                         netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, null, _currDurationPercent)
                             .then(function(success){
-                                console.log(success.completed_ratio);
                             }, function(error){
                                 console.log(error);
                             });
@@ -640,15 +639,13 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                 $.notify("Playing next song in party.", "info");
             }
             else {
-                _playerSeesEmpty = true;
+                 _playerSeesEmpty = true;
                 if(!_playingRadio) {
                     var station = getRadioStation();
-                    if(station != -1) {
-                        $.notify("No more playthroughs in playlist, playing radio.", "info");
-                        DZ.player.playRadio(station);
-                        _playingRadio = true;
-                        $rootScope.isPlayingRadio = _playingRadio;
-                    }
+                    $.notify("No more playthroughs in playlist, playing radio.", "info");
+                    DZ.player.playRadio(station);
+                    _playingRadio = true;
+                    $rootScope.isPlayingRadio = _playingRadio;
                 } 
             }
         }

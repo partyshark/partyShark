@@ -3,6 +3,8 @@ var controllersModule = angular.module('controllersModule',['servicesModule']);
 controllersModule.controller('mainController', function($scope, $interval, $route,$location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
+    $rootScope.progressValue = 0;
+
 
     //Cancel interval if not player
     //playerService.stopPlayerInterval();
@@ -246,7 +248,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
 
         var playthrough = playlistService.getTopPlaythrough();
         if(playthrough) {
-            $("#slider_seek").find('.bar').css('width', (100*playthrough.completed_ratio) + '%');
+            $rootScope.progressValue = playthrough.completed_ratio*100;
         }
 
         //update party settings
@@ -298,10 +300,12 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                 DZ.Event.subscribe('track_end', function(arg){
                     netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, null, 9999999)
                         .then(function(response) {
+                            console.log(response);
                             netService.getPlaylist(partyService.getPartyCode())
                                 .then(function(data) {
                                     $scope.emptyPlaylist = playlistService.isEmpty();
                                     $scope.playlist = playlistService.getPlaylist();
+                                    console.log(playlistService.getPlaylist().length);
                                     populatePlaylist();
                                     playerService.playNextPlaythrough();
                                 }, function(error) {
@@ -359,7 +363,7 @@ controllersModule.controller('playlistController', function($scope, $route, $int
                 populatePlaylist();
             }, function(error) {
                 console.log(error);
-                $.notify("Could not get playlist.", "error");
+                //$.notify("Could not get playlist.", "error");
             });
     }  
 
