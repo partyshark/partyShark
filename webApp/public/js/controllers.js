@@ -426,8 +426,13 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
         return $q.all(awaiting);
     }
 
-    $scope.votePlaythrough = function(playthroughCode, vote) {
-        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthroughCode, vote)
+    $scope.votePlaythrough = function(playthrough, vote) {
+        if (playthrough.vote == vote) {
+            vote = null;
+            playthrough.vote = null;
+        }
+        
+        netService.updateCurrentPlaythrough(partyService.getPartyCode(), playthrough.code, vote)
             .then(function(response) {
                 $.notify("Vote was added!", "success");
                 playlistService.getPlaylist().findIndex(function(element, index, array) {
