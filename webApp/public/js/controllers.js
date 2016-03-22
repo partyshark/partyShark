@@ -168,7 +168,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
         .then(function(res){
             $scope.currMaxQueue = optionsService.getMaxQueueSize();
             $scope.currMaxParticipants = optionsService.getNumParticipants();
-            $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
+            $scope.genreValue = optionsService.getDefaultGenreObject();
+            $scope.partyCode = partyService.getPartyCode();
         }, function(error){
             console.log(error);
         });
@@ -206,7 +207,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     });
 
     $scope.update = function() {
-        netService.updatePartySettings($scope.genreValue.value, $scope.maxParticipants, $scope.maxQueue)
+        netService.updatePartySettings($scope.genreValue.value, $scope.currMaxParticipants, $scope.currMaxQueue)
             .then(function(data) {
                 $.notify("Party settings changed!", "success");
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -270,7 +271,6 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
     // }
     //playerService.setPlayingRadio(false);
     //playerService.setPlayerSeesEmpty(true);
-
     $rootScope.displayName = "Ahoy, " + partyService.getDisplayName() + "!";
     //Check if user is admin
     netService.isAdmin().then(function(res) {

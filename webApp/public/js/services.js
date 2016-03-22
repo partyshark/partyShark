@@ -108,21 +108,15 @@ servicesModule.service('optionsService', function() {
         setDefaultGenre: function(genre) {
             _defaultGenre = genre;
         },
-        getDefaultGenreLabel: function() {
+        getDefaultGenreObject: function() {
+            var genres = Object.freeze(['Classic Rock', 'Metal', 'Jazz', 'Country', 'Top Hits', 'Classical', 'Folk', 'Electronic']);
             if(_defaultGenre ==  null)
-                return 'None';
-            switch(_defaultGenre) {
-                case 0:
-                    return 'Classic Rock';
-                case 1:
-                    return;
-                case 2:
-                    return;
-                case 3:
-                    return 'Country';
-                case 4:
-                    return 'Top Hits';
-            }
+                return {value:-1, label: "None"};
+            else
+                return {
+                    value: _defaultGenre,
+                    label: genres[_defaultGenre]
+                }
         }
 	}
 });
