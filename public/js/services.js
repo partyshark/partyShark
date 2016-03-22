@@ -1,130 +1,50 @@
-var serverAddress = 'https://api.partyshark.tk';
-
 var servicesModule = angular.module('servicesModule',[]);
 
-servicesModule.service('partyService', function(){
-    var _partyCode = "",
-    	_adminCode = "",
-    	_userName = "",
-    	_playerName = "",
-    	_displayName = "null",
-    	_isPlaying = false,
-        _isInParty = false,
-        _refreshInterval = null;
+servicesModule.service('PartyService', function() {
     return {
-        isPlayer: function() {
-            return (_displayName == _playerName);
-        },
-        isInParty: function() {
-            return _isInParty;
-        },
-    	getUserName: function() {
-    		return _userName;
-    	},
-    	getPartyCode: function() {
-    		return _partyCode;
-    	},
-        getPlayerName: function() {
-            return _playerName;
-        },
-        getDisplayName: function() {
-        	return _displayName;
-        },
-        getAdminCode: function() {
-            return _adminCode;
-        },
-        isPlaying: function() {
-            return _isPlaying;
-        },
-        setDisplayName: function(displayName) {
-        	_displayName = displayName;
-        	return true;
-        },
-    	setPartyCode: function(partyCode) {
-            _isInParty = true;
-    		_partyCode = partyCode;
-    		return true;
-    	},
-    	setAdminCode: function(adminCode) {
-    		_adminCode = adminCode;
-    		return true;
-    	},
-    	setUserName: function(userName) {
-    		_userName = userName;
-    		return true;
-    	},
-    	setPlayerName: function(playerName) {
-    		_playerName = playerName;
-    		return true;
-    	},
-    	setPlaying: function(status) {
-    		_isPlaying = status;
-    		return true;
-    	},
-    	setParty: function(partyObject) {
-    		_partyCode = partyObject.code;
-            _adminCode = partyObject.admin_code;
-            _playerName = partyObject.player;
-            _isPlaying = partyObject.is_playing;
-            _isInParty = true;
-    	}
+        code: null,
+        admin_code: null,
+        player: null,
+        is_playing: null,
+
+        isActive: function() { return this.code !== null; }
+    };
+});
+
+servicesModule.service('UserService', function(PartyService) {
+    return {
+        code: null,
+        username: null,
+
+        isPlayer: function() { return this.username && (this.username == PartyService.player); }
+    };
+});
+
+servicesModule.service('OptionsService', function() {
+    var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
+
+    var service = {
+        user_cap: null,
+        playthrough_cap: null,
+        virtual_dj: null,
+        veto_ratio: null,
+        default_genre: null
+    };
+
+    function getGenreLabel() {
+        var dg = service.default_genre;
+        if(dg ==  null || dg < 0 || dg >= genreLabels.length) { return 'None'; }
+        else { return genreLabels[dg]; }
     }
 });
 
-servicesModule.service('optionsService', function() { 
-	var _numParticipants = 10,
-		_maxQueueSize = 50,
-		_virtualDj = false,
-		_defaultGenre = 4,
-		_vetoRatio = 0.5;
-
-    var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
-
-	return {
-		getNumParticipants: function() {
-			return _numParticipants;
-		},
-		getMaxQueueSize: function() {
-			return _maxQueueSize;
-		},
-		getVirtualDj: function() {
-			return _virtualDj;
-		},
-		getDefaultGenre: function() {
-			return _defaultGenre;
-		},
-		getVetoRatio: function() {
-			return _vetoRatio;
-		},
-		setNumParticipants: function(num) {
-			_numParticipants = num;
-			return _numParticipants;
-		},
-		setMaxQueueSize: function(size) {
-			_maxQueueSize = size;
-			return _maxQueueSize;
-		},
-        setVirtualDJ: function(status) {
-            _virtualDj = status;
-            return _virtualDj;
-        },
-        setGenre: function(genre) {
-            _defaultGenre = genre;
-        },
-        getGenreLabel: function() {
-            if(_defaultGenre ==  null || _defaultGenre < 0 || _defaultGenre >= genreLabels.length) { return 'None'; }
-            else { return genreLabels[_defaultGenre]; }
-        }
-	}
-});
-
-servicesModule.service('cacheService', function() {
+servicesModule.service('SongCacheService', function() {
     var _cache = { };
     return {
-        isSongCached: function(songCode) {
+        getSong: function(songCode) {
            return _cache[songCode];
         },
-       addSongCache: function(song) {
+       addSong: function(song) {
            _cache[song.code] = song;
        }
     };
@@ -159,226 +79,135 @@ servicesModule.service('playlistService', function() {
 	}
 });
 
-servicesModule.service('netService', function($http, $q, partyService, cacheService, playlistService, optionsService, cacheService) {
-    function unpackDataset(dataset) {
-        var ret = [ ];
-        dataset.values.forEach(function(valList) {
-            var obj = { };
-            valList.forEach(function(item, index) {
-                obj[dataset.properties[index]] = item;
-            });
-            ret.push(obj);
-        });
-        return ret;
-    }
+servicesModule.service('NetService', function($http, $q, PartyService, UserService) {
+    var serverAddress = 'https://api.partyshark.tk';
 
 	return {
 		createParty: function() {
 			return $http.post(serverAddress+'/parties', {})
                 .then(function(response, headers) {
-                    partyService.setParty(response.data);
-                    partyService.setUserName(response.headers(['x-set-user-code']));
-                    return response;
+                    return {
+                        party: response.data,
+                        UserService.code = response.headers(['x-set-user-code']);
+                    };
                 });
 		},
-		getParty: function(partyCode) {
-            return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName()}})
+		getParty: function() {
+            return $http.get(serverAddress+'/parties/'+PartyService.code, {headers: {'x-user-code': UserService.code}})
                 .then(function(res) { return res.data; })
         },
-        updateParty: function(partyCode, status) {
+        updateParty: function(update) {
             var req = {
                  method: 'PUT',
-                 url: serverAddress+'/parties/'+partyCode,
-                 headers: {
-                   'x-user-code': partyService.getUserName()
-                 },
-                 data: {
-                    "is_playing": status
-                }
+                 url: serverAddress+'/parties/'+PartyService.code,
+                 headers: {'x-user-code': UserService.code},
+                 data: update
             }
             return $http(req).then(function(response) { return response.data; });
         },
-        getPlayerTransferRequest: function(playerTransferCode) {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers/'+playerTransferCode, {headers: {'x-user-code': partyService.getUserName()}})
+
+        createSelf: function() {
+            return $http.post(serverAddress+'/parties/'+PartyService.code+'/users')
                 .then(function(response) {
-                    return response;
-                }, function(response) {
-                    return $q.reject(response);
+                    return {
+                        party: response.data,
+                        UserService.code = response.headers(['x-set-user-code']);
+                    };
+                });
+        },
+        deleteSelf: function() {
+            return $http.delete(serverAddress+'/parties/'+PartyService.code+'/users/self', {headers: {'x-user-code': UserService.code}})
+                .then(function(response) {
+                    return response.data;
+                });
+        },
+
+        getPlayerTransferRequest: function(transferCode) {
+            return $http.get(serverAddress+'/parties/'+PartyService.code+'/playertransfers/'+transferCode, {headers: {'x-user-code': UserService.code}})
+                .then(function(response) {
+                    return response.data;
                 });
         },
         getPlayerTransferRequests: function() {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers', {headers: {'x-user-code': partyService.getUserName()}})
+            return $http.get(serverAddress+'/parties/'+PartyService.code+'/playertransfers', {headers: {'x-user-code': UserService.code}})
                 .then(function(response) {
-                    return response;
-                }, function(response) {
-                    return $q.reject(response);
+                    return response.data;
                 });
         },
-		requestPlayer: function() {
-            return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers', {}, {
-                        headers: {'x-user-code': partyService.getUserName()}})
+		createPlayerTransferRequest: function() {
+            return $http.post(serverAddress+'/parties/'+PartyService.code+'/playertransfers', {}, {headers: {'x-user-code': UserService.code}})
                 .then(function(response) {
-                        return response;
-                }, function(response) {
-                    return $q.reject(response);
+                        return response.data;
                 });
 		},
-        approvePlayerTransfer: function(status, requestCode) {
+        approvePlayerTransfer: function(transferCode) {
             var req = {
                  method: 'PUT',
-                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers/'+requestCode,
-                 headers: {
-                   'x-user-code': partyService.getUserName()
-                 },
-                 data: {
-                   'status': status
-                }
+                 url: serverAddress+'/parties/'+PartyService.code+'/playertransfers/'+transferCode,
+                 headers: {'x-user-code': UserService.code},
+                 data: {'status': 1}
             }
             return $http(req)
                 .then(function(response) {
-                        return response.data;
-                }, function(error) {
-                    return $q.reject(error);
+                    return response.data;
                 });
         },
-		getPlaylist: function(partyCode) {
+
+		getPlaylist: function() {
             return $http.get(
-                serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist',
-                { headers: {'x-user-code': partyService.getUserName()} }
+                serverAddress+'/parties/'+PartyService.code+'/playlist',
+                { headers: {'x-user-code': UserService.code} }
             )
-            .then(
-                function(response) {
-                    var arr = [ ], names = response.data.properties;
-
-                    response.data.values.forEach(function(valList) {
-                        var obj = { };
-                        valList.forEach(function(val, index) {
-                            obj[names[index]] = val;
-                        });
-                        arr.push(obj);
-                    });
-
-                    playlistService.setPlaylist(arr);
-                    return response;
-                },
-                function(response) {
-                    return $q.reject(response);
-                }
-            );
+            .then(function(response) {
+                return Util.reviveDataset(response.data);
+            });
         },
-		createPlaythrough: function(songId) {
-			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist', {
-				"song_code": songId
-			}, {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                        return response;
-                }, function(response) {
-                    return $q.reject(response);
-                });
+
+		createPlaythrough: function(songCode) {
+			return $http.post(
+			    serverAddress+'/parties/'+PartyService.code+'/playlist',
+				{"song_code": songCode},
+			    {headers: {'x-user-code': UserService.code}}
+            )
+            .then(function(response) {
+                return response.data;
+            });
 		},
         deletePlaythrough: function(playthroughCode) {
             var req = {
                  method: 'DELETE',
-                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
-                 headers: {
-                   'x-user-code': partyService.getUserName()
-                 },
+                 url: serverAddress+'/parties/'+PartyService.code+'/playlist/'+playthroughCode,
+                 headers: {'x-user-code': UserService.code},
                  data: {}
             }
-            return $http(req)
-                .then(function(response) {
-                        return response.data;
-                }, function(error) {
-                    return $q.reject(error);
-                });
+            return $http(req).then(function(response) { return null; });
         },
-		updateCurrentPlaythrough: function(partyCode, playthroughCode, vote, ratio) {
-            var data;
-            if (vote == -1) {
-                data = {
-                    "completed_ratio": ratio,
-                } 
-            }
-            else {
-               data = {
-                    "completed_ratio": ratio,
-                    "vote": vote
-                } 
-            }
+		updatePlaythrough: function(playthroughCode, update) {
             var req = {
                  method: 'PUT',
-                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/playlist/'+playthroughCode,
-                 headers: {
-                   'x-user-code': partyService.getUserName()
-                 },
-                 data: data
+                 url: serverAddress+'/parties/'+PartyService.code+'/playlist/'+playthroughCode,
+                 headers: {'x-user-code': UserService.code},
+                 data: update
             }
-            return $http(req)
-                .then(function(response) {
-                        return response.data;
-                }, function(error) {
-                    return $q.reject(error);
-                });
+            return $http(req).then(function(response) { return response.data; });
 		},
+
 		getPartySettings: function() {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/settings', {headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    optionsService.setGenre(response.data.default_genre);
-                    optionsService.setNumParticipants(response.data.user_cap);
-                    optionsService.setMaxQueueSize(response.data.playthrough_cap);
-                    optionsService.setVirtualDJ(response.data.virtual_dj);
-                    return response;
-                }, function(response) {
-                    return $q.reject(response.data);
-                });
+            return $http.get(serverAddress+'/parties/'+PartyService.code+'/settings', {headers: {'x-user-code': UserService.code}})
+                .then(function(response) { return response.data; });
 		},
-		updatePartySettings: function(genre, participants, queue, virtualDJ) {
+		updatePartySettings: function(update) {
 			var req = {
 				 method: 'PUT',
-				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',
-				 headers: {
-				   'x-user-code': partyService.getUserName()
-				 },
-				 data: {
-					"virtual_dj": virtualDJ,
-	  				"default_genre": genre,
-	  				"user_cap": participants,
-	  				"playthrough_cap": queue,
-	  				"veto_ratio": optionsService.getVetoRatio()
-				}
+				 url: serverAddress+'/parties/'+PartyService.code+'/settings',
+				 headers: {'x-user-code': UserService.code},
+				 data: update
 			}
-            console.log('update'+JSON.stringify(req.data))
-			return $http(req)
-                .then(function(response) {
-                    optionsService.setGenre(response.data.default_genre);
-                    optionsService.setNumParticipants(response.data.user_cap);
-                    optionsService.setMaxQueueSize(response.data.playthrough_cap);
-                    return response;
-                }, function(response) {
-                    return $q.reject(response);
-                });
+			return $http(req).then(function(response) { return response.data; });
 		},
-		getSong: function(songCode) {
-           var song = cacheService.isSongCached(songCode);
 
-           function toDataUrl(url, outputFormat){
-               var deferrer = $q.defer();
-               var img = new Image();
-               img.crossOrigin = 'Anonymous';
-               img.onload = function(){
-                   var canvas = document.createElement('CANVAS');
-                   var ctx = canvas.getContext('2d');
-                   var dataURL;
-                   canvas.height = this.height;
-                   canvas.width = this.width;
-                   ctx.drawImage(this, 0, 0);
-                   dataURL = canvas.toDataURL(outputFormat);
-                   deferrer.resolve(dataURL);
-               };
-               img.src = url;
-               return deferrer.promise;
-           }
+		getSong: function(songCode) {
+           var song = SongCacheService.getSong(songCode);
 
            if(song) {
                var deferred = $q.defer();
@@ -388,7 +217,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
            else {
                return $http.jsonp(
                    'https://api.deezer.com/track/'+songCode+'&output=jsonp&callback=JSON_CALLBACK',
-                   { headers: {'x-user-code': partyService.getUserName()} }
+                   { headers: {'x-user-code': UserService.username} }
                )
                .then(function(response) {
                    var result = response.data;
@@ -397,26 +226,17 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                       'title': result.title_short,
                       'duration': result.duration * 1000,
                       'artist': result.artist.name,
+                      'art': result.album.cover,
                       'year': result.release_date.split('-')[0]
                    };
-
-                   return song;/*toDataUrl(result.album.cover, 'image/jpeg').then(
-                       function(dataUrl) {
-                           song.art = dataUrl;
-                           cacheService.addSongCache(song);
-                           return song;
-                       }
-                   );*/
-               },
-               function(response) {
-                   return $q.reject(response);
-               })
+                   SongCacheService.addSong(song);
+                   return song;
+               });
            }
-       },
+        },
 		searchSongs: function(query) {
             return $http.jsonp('https://api.deezer.com/search?q='+query+'&output=jsonp&callback=JSON_CALLBACK')
-                .then(
-                    function(response) {
+                .then(function(response) {
                         var arr = [ ];
 
                         response.data.data.forEach(function(result) {
@@ -430,102 +250,19 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                         });
 
                         return arr;
-                    },
-                    function(response) {
-                        return $q.reject(response);
-                    }
-                );
-        },
-		sendContact: function(contactObject) {
-			return true;
-		},
-		createUser: function() {
-			return $http.post(serverAddress+'/parties/'+partyService.getPartyCode()+'/users', {})
-			.then(function(response) {
-				partyService.setUserName(response.headers(['x-set-user-code']));
-				partyService.setDisplayName(response.data.username);
-                return response;
-            }, function(response) {
-            	return $q.reject(response);
-            });
-		},
-        getDisplayName: function() {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    partyService.setDisplayName(response.data.username);
-                    return response.data;
-                }, function(response) {
-                    return $q.reject(response);
-                });
-        },
-        leaveParty: function() {
-            console.log(partyService.getPartyCode());
-            return $http.delete(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    return response;
-                }, function(response) {
-                    return $q.reject(response);
-                });
-        },
-        promoteUser: function(adminCode) {
-            var req = {
-                 method: 'PUT',
-                 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self',
-                 headers: {
-                   'x-user-code': partyService.getUserName()
-                 },
-                 data: {
-                    "admin_code": adminCode
-                }
-            }
-            return $http(req)
-                .then(function(response) {
-                        return response;
-                }, function(response) {
-                    return $q.reject(response);
-                });
-        }, 
-        isAdmin: function() {
-            return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/users/self', {
-                        headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    return response.data.is_admin;
-                }, function(response) {
-                    return $q.reject(response);
-                });
+                    });
         }
 	}
 });
 
-servicesModule.service('playerService', function($rootScope, $interval, $q, playlistService, optionsService, netService, partyService) {
+servicesModule.service('playerService', function($rootScope, $interval, $q, playlistService, OptionsService, NetService, PartyService) {
 
     var nowPlayingCode = 1, radioIsQueued = false;
     var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
-    var trackEnd = createPublisher(), playerPosition = createPublisher(), trackChanged = createPublisher();
-
-    function createPublisher() {
-        var subs = [ ];
-
-        return {
-            subscribe: function(callback) {
-                subs.push(callback);
-
-                return {
-                    cancel: function() {
-                        subs.splice(subs.indexOf(callback), 1);
-                    }
-                };
-            },
-            publish: function(arg) {
-                for(var i = 0; i < subs.length; i++) { subs[i](arg); }
-            }
-        };
-    }
+    var trackEnd = new Util.Publisher(), playerPosition = new Util.Publisher(), trackChanged = new Util.Publisher();
 
     function getRadioStation() {
-        var genre = optionsService.getDefaultGenre();
+        var genre = OptionsService.getDefaultGenre();
         if(genre == null || genre < 0 || genre >= stations.length) { return -1; }
         else { return stations[genre]; }
     }
@@ -571,12 +308,13 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
             radioIsQueued = true;
         },
 
-        nowPlayingCode: function() { return nowPlayingCode; },
+        nowPlayingCode: function() {
+            var track = DZ.player.getCurrentTrack()
+            return (!track) ? null : track.id;
+        },
 
         radioIsQueued: function() { return radioIsQueued; }
     };
-
-    trackChanged.subscribe(function(song) { nowPlayingCode = song.id; })
 
     return service;
 });
