@@ -110,8 +110,10 @@ servicesModule.service('optionsService', function() {
         },
         getDefaultGenreObject: function() {
             var genres = Object.freeze(['Classic Rock', 'Metal', 'Jazz', 'Country', 'Top Hits', 'Classical', 'Folk', 'Electronic']);
-            if(_defaultGenre ==  null)
-                return {value:-1, label: "None"};
+            if(_defaultGenre ===  null)
+                return { value: null, 
+                        label: "None"
+                        };
             else
                 return {
                     value: _defaultGenre,

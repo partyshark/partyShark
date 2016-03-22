@@ -169,6 +169,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     //update party settings
     netService.getPartySettings()
         .then(function(res){
+            $scope.partyCode = partyService.getPartyCode();
             var maxQueueSize = optionsService.getMaxQueueSize();
             var maxNumParticipants = optionsService.getNumParticipants();
 
@@ -182,7 +183,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
             else
                 $scope.currMaxParticipants = "Unlimited";
             
-            $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
+            $scope.genreValue = optionsService.getDefaultGenreObject();
         }, function(error){
             console.log(error);
         });
