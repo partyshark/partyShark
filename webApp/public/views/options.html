@@ -41,9 +41,8 @@
                     <label for="genreSelect">Default Radio Genre on Empty Playlist:</label><br>
                     <small>This selects the genre of songs to be automatically played in the case that there are no songs in the queue</small>
 
-                    <select ng-hide="isAdmin" class="form-control" ng-model="genreValue" ng-options="genre as genre.label for genre in genres track by genre.value" style="width: 25%;" ng-disabled="true"></select>
+                    <select class="form-control" ng-model="genreValue" ng-options="genre as genre.label for genre in genres track by genre.value" style="width: 25%;" ng-disabled="!isAdmin"></select>
 
-                    <select ng-show="isAdmin" class="form-control" ng-model="genreValue" ng-options="genre as genre.label for genre in genres track by genre.value" style="width: 25%;"></select>
                   </div>
 
                   <div ng-show="showAdminControl">
