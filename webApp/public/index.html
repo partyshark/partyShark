@@ -53,11 +53,14 @@
     <script src="js/controllers.js"></script>
     <script src="js/directives.js"></script>
 
+    <script src="libs/ion.sound.min.js"></script>
+
     <script src="js/notify.js"></script>
     <script src="js/swfobject.js"></script> 
 </head>
 
-<body class="index" init-notifications>
+<body class="index" init-notifications ng-controller="MainController">
+
     <!-- Navigation -->
     <nav class="navbar navbar-default">
         <div class="container">
@@ -80,7 +83,7 @@
                     <!--<button ng-show="isAdmin" class="btn btn-default" ng-click="veto();"><i class="fa fa-ban fa-2x"></i></button>-->
                     <button ng-show="isPlayer" class="btn navbar-btn btn-default" ng-click="loginPlayer();"><i class="fa fa-sign-in"></i></button>
                 </ul>
-                <ul class="nav navbar-nav navbar-right" ng-controller="mainController">
+                <ul class="nav navbar-nav navbar-right" ng-controller="NavController">
                     <li class="hidden">
                         <a href=""></a>
                     </li>
@@ -90,10 +93,9 @@
                 </ul>
             </div>
 
-            <!-- /.navbar-collapse -->
         </div>
-        <!-- /.container-fluid -->
     </nav>
+
     <div ng-show="isPlayingRadio">
         <section>
             <div id="dz-root"></div>

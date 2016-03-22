@@ -33,6 +33,9 @@ servicesModule.service('partyService', function(){
         getAdminCode: function() {
             return _adminCode;
         },
+        isPlaying: function() {
+            return _isPlaying;
+        },
         setDisplayName: function(displayName) {
         	_displayName = displayName;
         	return true;
@@ -64,13 +67,7 @@ servicesModule.service('partyService', function(){
             _playerName = partyObject.player;
             _isPlaying = partyObject.is_playing;
             _isInParty = true;
-    	},
-        startRefresh: function() {
-
-        },
-        stopRefresh: function() {
-            
-        }
+    	}
     }
 });
 
@@ -80,6 +77,8 @@ servicesModule.service('optionsService', function() {
 		_virtualDj = false,
 		_defaultGenre = 4,
 		_vetoRatio = 0.5;
+
+    var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
 
 	return {
 		getNumParticipants: function() {
@@ -105,24 +104,16 @@ servicesModule.service('optionsService', function() {
 			_maxQueueSize = size;
 			return _maxQueueSize;
 		},
-        setDefaultGenre: function(genre) {
+        setVirtualDJ: function(status) {
+            _virtualDj = status;
+            return _virtualDj;
+        },
+        setGenre: function(genre) {
             _defaultGenre = genre;
         },
-        getDefaultGenreLabel: function() {
-            if(_defaultGenre ==  null)
-                return 'None';
-            switch(_defaultGenre) {
-                case 0:
-                    return 'Classic Rock';
-                case 1:
-                    return;
-                case 2:
-                    return;
-                case 3:
-                    return 'Country';
-                case 4:
-                    return 'Top Hits';
-            }
+        getGenreLabel: function() {
+            if(_defaultGenre ==  null || _defaultGenre < 0 || _defaultGenre >= genreLabels.length) { return 'None'; }
+            else { return genreLabels[_defaultGenre]; }
         }
 	}
 });
@@ -144,13 +135,6 @@ servicesModule.service('playlistService', function() {
 	var _playlist = [];
     var _playerInitialized = false;
 	return {
-        setPlayerInitialized: function() {
-            _playerInitialized = true;
-            return true;
-        },
-        isPlayerInitialized: function() {
-            return _playerInitialized;
-        },
 		isEmpty: function() {
 			return _emptyPlaylist;
 		},
@@ -176,27 +160,30 @@ servicesModule.service('playlistService', function() {
 });
 
 servicesModule.service('netService', function($http, $q, partyService, cacheService, playlistService, optionsService, cacheService) {
+    function unpackDataset(dataset) {
+        var ret = [ ];
+        dataset.values.forEach(function(valList) {
+            var obj = { };
+            valList.forEach(function(item, index) {
+                obj[dataset.properties[index]] = item;
+            });
+            ret.push(obj);
+        });
+        return ret;
+    }
+
 	return {
 		createParty: function() {
-			return $http.post(serverAddress+'/parties', {
-                
-			})
+			return $http.post(serverAddress+'/parties', {})
                 .then(function(response, headers) {
                     partyService.setParty(response.data);
                     partyService.setUserName(response.headers(['x-set-user-code']));
                     return response;
-                }, function(response) {
-                    return $q.reject(response.data);
                 });
 		},
 		getParty: function(partyCode) {
             return $http.get(serverAddress+'/parties/'+partyCode, {headers: {'x-user-code': partyService.getUserName()}})
-                .then(function(response) {
-                    partyService.setParty(response.data);
-                    return response;
-                }, function(response) {
-                    return $q.reject(response.data);
-                });
+                .then(function(res) { return res.data; })
         },
         updateParty: function(partyCode, status) {
             var req = {
@@ -209,12 +196,7 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
                     "is_playing": status
                 }
             }
-            return $http(req)
-                .then(function(response) {
-                        return response.data;
-                }, function(error) {
-                    return $q.reject(error);
-                });
+            return $http(req).then(function(response) { return response.data; });
         },
         getPlayerTransferRequest: function(playerTransferCode) {
             return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/playertransfers/'+playerTransferCode, {headers: {'x-user-code': partyService.getUserName()}})
@@ -342,15 +324,16 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 		getPartySettings: function() {
             return $http.get(serverAddress+'/parties/'+partyService.getPartyCode()+'/settings', {headers: {'x-user-code': partyService.getUserName()}})
                 .then(function(response) {
-                    optionsService.setDefaultGenre(response.data.default_genre);
+                    optionsService.setGenre(response.data.default_genre);
                     optionsService.setNumParticipants(response.data.user_cap);
                     optionsService.setMaxQueueSize(response.data.playthrough_cap);
+                    optionsService.setVirtualDJ(response.data.virtual_dj);
                     return response;
                 }, function(response) {
                     return $q.reject(response.data);
                 });
 		},
-		updatePartySettings: function(genre, participants, queue) {
+		updatePartySettings: function(genre, participants, queue, virtualDJ) {
 			var req = {
 				 method: 'PUT',
 				 url: serverAddress+'/parties/'+partyService.getPartyCode()+'/settings',
@@ -358,16 +341,17 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 				   'x-user-code': partyService.getUserName()
 				 },
 				 data: {
-					"virtual_dj": optionsService.getVirtualDj(),
+					"virtual_dj": virtualDJ,
 	  				"default_genre": genre,
 	  				"user_cap": participants,
 	  				"playthrough_cap": queue,
 	  				"veto_ratio": optionsService.getVetoRatio()
 				}
 			}
+            console.log('update'+JSON.stringify(req.data))
 			return $http(req)
                 .then(function(response) {
-                    optionsService.setDefaultGenre(response.data.default_genre);
+                    optionsService.setGenre(response.data.default_genre);
                     optionsService.setNumParticipants(response.data.user_cap);
                     optionsService.setMaxQueueSize(response.data.playthrough_cap);
                     return response;
@@ -517,176 +501,111 @@ servicesModule.service('netService', function($http, $q, partyService, cacheServ
 });
 
 servicesModule.service('playerService', function($rootScope, $interval, $q, playlistService, optionsService, netService, partyService) {
-    var _playerInterval = null,
-        _player,
-        _playerSeesEmpty = true,
-        _playingRadio = false,
-        _currPlayingCode,
-        _currDurationPercent;
+
+    var nowPlayingCode = 1, radioIsQueued = false;
+    var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
+    var trackEnd = createPublisher(), playerPosition = createPublisher(), trackChanged = createPublisher();
+
+    function createPublisher() {
+        var subs = [ ];
+
+        return {
+            subscribe: function(callback) {
+                subs.push(callback);
+
+                return {
+                    cancel: function() {
+                        subs.splice(subs.indexOf(callback), 1);
+                    }
+                };
+            },
+            publish: function(arg) {
+                for(var i = 0; i < subs.length; i++) { subs[i](arg); }
+            }
+        };
+    }
 
     function getRadioStation() {
         var genre = optionsService.getDefaultGenre();
-        if(genre == null)
-            return -1;
-
-        switch(genre) {
-            case 0:
-                return 37765;
-                break;
-            case 1:
-                return 30901;
-                break;
-            case 2:
-                return 31031;
-                break;
-            case 3:
-                return 36801;
-            case 4:
-                return 31061;
-                break;
-            case 5:
-                return 30661;
-                break;
-            case 6:
-                return 37091;
-                break;
-            case 7:
-                return 30851;
-                break;
-            default:
-                return -1;
-        }
+        if(genre == null || genre < 0 || genre >= stations.length) { return -1; }
+        else { return stations[genre]; }
     }
 
-    return {
-        //Player interval is used to poll events player needs
-        startPlayerInterval: function() {
-            var self = this;
-            if(_playerInterval) {
-                $interval.cancel(_playerInterval);
-            }
-            _playerInterval = $interval(function() {
-                //Check to see if still player, pause or play
-                netService.getParty(partyService.getPartyCode())
-                    .then(function(res){
-                        netService.getPlaylist(partyService.getPartyCode())
-                            .then(function(data) {
-                                //Check to make sure current playing is still at pos 0
-                                var play = playlistService.getTopPlaythrough();
-                                if(play.code !== _currPlayingCode) {
-                                    self.playNextPlaythrough();
-                                }
+    // Init player (should be deferred)
+    DZ.init({
+        appId  : '174261',
+        channelUrl : 'https://www.partyshark.tk/channel.html',
+        player : {
+            onload : function() {
+                $.notify("Player is initialized.", "success");
 
-                                //If playing and last song is vetoed, play next
-                                if(!_playerSeesEmpty && !playlistService.getPlaylist().length) {
-                                    self.playNextPlaythrough();
-                                }
-
-                            }, function(error) {
-                                console.log(error);
-                                $.notify("Could not get playlist.", "error");
-                            });
-
-                        //If no longer player, remove player functionality
-                        if(res.data.player != partyService.getDisplayName()){
-                            $rootScope.isPlayer = false;
-                            $('#dz-root').empty();
-                            $.notify("You are no longer the player.", "info");
-                            self.stopPlayerInterval();
-                        }
-                        //If still player, check playing status
-                        else {
-                            if(res.data.is_playing && !_playerSeesEmpty)
-                                DZ.player.play();
-                            else
-                                DZ.player.pause();
-                        }
-
-                        //update completed duration if playing from playlist
-                        if (!_playerSeesEmpty) {
-                        netService.updateCurrentPlaythrough(partyService.getPartyCode(), _currPlayingCode, -1, _currDurationPercent)
-                            .then(function(success){
-                            }, function(error){
-                                console.log(error);
-                            });
-                        }
-                    }, function(error){
-                        console.log(error);
-                        $.notify("Could not check play status", "error");
-                    });
-
-                //Check if playingRadio, if so, check for available playthroughs
-                if (_playerSeesEmpty && playlistService.getPlaylist().length) {
-                    self.playNextPlaythrough();
-                }
-            }, 5000);
-        },
-        stopPlayerInterval: function() {
-            $interval.cancel(_playerInterval);
-            _playerInterval = null;
-        },
-        playerSeesEmpty: function() {
-            return _playerSeesEmpty;
-        },
-        setPlayerSeesEmpty: function(status) {
-            _playerSeesEmpty = status;
-        },
-        isPlayingRadio: function() {
-            return _playingRadio;
-        },
-        setPlayingRadio: function(status) {
-            _playingRadio = status;
-        },
-        initializePlayer: function(callback) {
-            var self = this;
-            var deferred = $q.defer();
-            deferred.resolve("Success");
-            DZ.init({
-                appId  : '174261',
-                channelUrl : 'https://www.partyshark.tk/channel.html',
-                player : {
-                onload : function(){
-                        playlistService.setPlayerInitialized();
-                        self.playNextPlaythrough();
-                        callback();
-                    }
-                }
-            });
-        },
-        subscribeEvents: function() {
-            DZ.Event.subscribe('current_track', function(track) {
-                $rootScope.trackTitle = track.track.title;
-                $rootScope.trackArtist = track.track.artist.name;
-            });
-            DZ.Event.subscribe('player_position', function(arg){
-                _currDurationPercent = arg[0]/arg[1];
-            });
-        },
-        playNextPlaythrough: function() {
-            var playthrough = playlistService.getTopPlaythrough();
-            if(playthrough) {
-                _currPlayingCode = playthrough.code;
-                _playerSeesEmpty = false;
-                _playingRadio = false;
-                $rootScope.isPlayingRadio = _playingRadio;
-                DZ.player.playTracks([playthrough.song_code]);
-                $.notify("Playing next song in party.", "info");
-            }
-            else {
-                 _playerSeesEmpty = true;
-                if(!_playingRadio && optionsService.getDefaultGenre() != null) {
-                    var station = getRadioStation();
-                    $.notify("No more playthroughs in playlist, playing radio.", "info");
-                    DZ.player.playRadio(station);
-                    _playingRadio = true;
-                    $rootScope.isPlayingRadio = _playingRadio;
-                } 
-                else{
-                        DZ.player.pause();
-                }
+                DZ.Event.subscribe('track_end', function(song) {
+                    $rootScope.$apply(function() { trackEnd.publish(song); });
+                });
+                DZ.Event.subscribe('current_track',function(song) {
+                    $rootScope.$apply(function() { trackChanged.publish(song.track); });
+                });
+                DZ.Event.subscribe('player_position', function(pos) {
+                    $rootScope.$apply(function() { playerPosition.publish(pos); });
+                });
             }
         }
-    }
+    });
+
+
+    var service = {
+        subscribeToTrackEnd: trackEnd.subscribe,
+
+        subscribeToPlayerPosition: playerPosition.subscribe,
+
+        queueSong: function(songCode) { 
+            DZ.player.playTracks([songCode]);
+            radioIsQueued = false;
+        },
+
+        pause: function() { DZ.player.pause(); },
+
+        play: function() { DZ.player.play(); },
+
+        queueStation: function(stationCode) { 
+            DZ.player.playRadio(getRadioStation(stationCode));
+            radioIsQueued = true;
+        },
+
+        nowPlayingCode: function() { return nowPlayingCode; },
+
+        radioIsQueued: function() { return radioIsQueued; }
+    };
+
+    trackChanged.subscribe(function(song) { nowPlayingCode = song.id; })
+
+    return service;
+});
+
+servicesModule.service('SoundsService', function($interval) {
+    // Load sounds
+    ion.sound({
+        sounds: [
+            {name: "rap_horn"},
+        ],
+
+        // main config
+        path: "./sounds/",
+        preload: true,
+        multiplay: true,
+        volume: 1.0
+    });
+
+    var service = {
+        playRapHorn: function() { 
+           ion.sound.play('rap_horn');
+           $interval(function() {
+               $interval(function() {ion.sound.play('rap_horn');}, 150, 5, false);
+           }, 200, 1, false);
+        }
+    };
+
+    return service;
 });
 
 

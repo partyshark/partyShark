@@ -1,6 +1,64 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('mainController', function($scope, $interval, $window, $route,$location, $rootScope, $route, partyService, netService, playerService) {
+controllersModule.controller('MainController', function($scope, $interval, $rootScope, partyService, playerService, optionsService, netService, SoundsService, playlistService) {
+    // Poll party
+    $interval(function() { console.log('loop'); if (partyService.isInParty()) {
+        console.log('inner');
+        netService.getParty(partyService.getPartyCode())
+            .then(function(data) {
+                partyService.setParty(data);
+                updatePlayer();
+            });
+    }}, 3000);
+
+    // Poll settings
+    $interval(function() { if (partyService.isInParty()) {
+        netService.getPartySettings(partyService.getPartyCode())
+            .then(optionsService.setOptions)
+    }}, 3000);
+
+    playerService.subscribeToTrackEnd(updatePlayer);
+
+    playerService.subscribeToTrackEnd(function() {
+        if (optionsService.getVirtualDj()) {
+            SoundsService.playRapHorn();
+        }
+    })
+
+    function updatePlayer() { 
+        if (partyService.isPlayer()) {
+            //Check to make sure current playing is still at pos 0
+            var nowPlaying = playlistService.getTopPlaythrough();
+            var hasContent = false;
+            if(nowPlaying) {
+                if(nowPlaying.song_code != playerService.nowPlayingCode()) {
+                    playerService.queueSong(nowPlaying.song_code);
+                    hasContent = true;
+                    console.log('queued track');
+                }
+            }
+            else if(optionsService.getDefaultGenre() !== null && !playerService.radioIsQueued()) {
+                playerService.queueStation(optionsService.getDefaultGenre());
+                hasContent = true;
+                console.log('queued radio');
+            }
+            else {
+                playerService.pause();
+            }
+
+            if (hasContent && partyService.isPlaying()) {
+                console.log(playerService.nowPlayingCode());
+                playerService.play();
+                console.log('play');
+            }               
+        }
+        else {
+            playerService.pause();
+        }
+    }
+});
+
+controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, partyService, netService, playerService) {
     $scope.isPlayer = false;
     $scope.isAdmin = false;
     $rootScope.progressValue = 0;
@@ -109,7 +167,7 @@ controllersModule.controller('startPartyController', function($scope, $rootScope
     $scope.startParty = function() {
         netService.createParty()
             .then(function(data) {
-                    netService.updatePartySettings($scope.genreValue.value, $scope.numParticipants, $scope.maxQueue)
+                    netService.updatePartySettings($scope.genreValue.value, $scope.numParticipants, $scope.maxQueue, $scope.virtualDJ)
                         .then(function(data) {
                             netService.getDisplayName()
                                 .then(function(data) {
@@ -182,7 +240,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
             else
                 $scope.currMaxParticipants = "Unlimited";
             
-            $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
+            $scope.genreValueLabel = optionsService.setGenreLabel();
         }, function(error){
             console.log(error);
         });
@@ -248,6 +306,10 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
     $scope.requestPlayer = function() {
         $.notify("You have requested to be the player, now pending acceptance.", "info");
+        if(partyService.getPlayerName() == partyService.getDisplayName()) {
+            $.notify("You are already the player.", "info");
+            return;
+        }
         netService.requestPlayer()
             .then(function(data) {
                 //Poll on response
@@ -344,39 +406,18 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
       $interval.cancel(refresh);
     });
 
+    var sub = playerService.subscribeToTrackEnd(function(song) {
+        $scope.emptyPlaylist = playlistService.isEmpty();
+        $scope.playlist = playlistService.getPlaylist();
+        console.log(playlistService.getPlaylist().length);
+        populatePlaylist();
+    });
+
     //If player, load player and define event triggers
     $rootScope.isPlayer = partyService.isPlayer();
     if($rootScope.isPlayer) {
         if(swfobject.hasFlashPlayerVersion("10.1")) {
-            //Initialize player
-            if(!playlistService.isPlayerInitialized()) {
-                playerService.initializePlayer(function() {$.notify("Player is loaded.","success");});
-                playerService.subscribeEvents();
-                DZ.Event.subscribe('track_end', function(arg){
-                    netService.updateCurrentPlaythrough(partyService.getPartyCode(), playlistService.getTopPlaythrough().code, -1, 9999999)
-                        .then(function(response) {
-                            console.log(response);
-                            netService.getPlaylist(partyService.getPartyCode())
-                                .then(function(data) {
-                                    $scope.emptyPlaylist = playlistService.isEmpty();
-                                    $scope.playlist = playlistService.getPlaylist();
-                                    console.log(playlistService.getPlaylist().length);
-                                    populatePlaylist();
-                                    playerService.playNextPlaythrough();
-                                }, function(error) {
-                                    console.log(error);
-                                    $.notify("Could not get playlist.", "error");
-                                });
-                        },
-                        function(error) {
-                            console.log(error);
-                            $.notify("Song could not be marked as completed.", "error");
-                        }); 
-                });
-                playlistService.setPlayerInitialized();
-            }
-            //Player polling interval
-            playerService.startPlayerInterval();
+            
         }
         else {
             $.notify("Flash Player is needed to be the player. Cannot be the player.", "error");
