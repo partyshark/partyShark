@@ -271,6 +271,10 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
     // }
     //playerService.setPlayingRadio(false);
     //playerService.setPlayerSeesEmpty(true);
+    $scope.partyCode = $routeParams.partyCode;
+    $scope.passSearch = function() {
+        $location.path('/'+$scope.partyCode+'/search');
+    }
     $rootScope.displayName = "Ahoy, " + partyService.getDisplayName() + "!";
     //Check if user is admin
     netService.isAdmin().then(function(res) {
