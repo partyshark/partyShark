@@ -169,6 +169,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     //update party settings
     netService.getPartySettings()
         .then(function(res){
+            $scope.partyCode = partyService.getPartyCode();
             var maxQueueSize = optionsService.getMaxQueueSize();
             var maxNumParticipants = optionsService.getNumParticipants();
 
@@ -182,7 +183,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
             else
                 $scope.currMaxParticipants = "Unlimited";
             
-            $scope.genreValueLabel = optionsService.getDefaultGenreLabel();
+            $scope.genreValue = optionsService.getDefaultGenreObject();
         }, function(error){
             console.log(error);
         });
@@ -220,7 +221,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     });
 
     $scope.update = function() {
-        netService.updatePartySettings($scope.genreValue.value, $scope.maxParticipants, $scope.maxQueue)
+        netService.updatePartySettings($scope.genreValue.value, $scope.currMaxParticipants, $scope.currMaxQueue)
             .then(function(data) {
                 $.notify("Party settings changed!", "success");
                 $location.path('/'+partyService.getPartyCode()+'/playlist');
@@ -284,7 +285,10 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
     // }
     //playerService.setPlayingRadio(false);
     //playerService.setPlayerSeesEmpty(true);
-
+    $scope.partyCode = $routeParams.partyCode;
+    $scope.passSearch = function() {
+        $location.path('/'+$scope.partyCode+'/search');
+    }
     $rootScope.displayName = "Ahoy, " + partyService.getDisplayName() + "!";
     //Check if user is admin
     netService.isAdmin().then(function(res) {

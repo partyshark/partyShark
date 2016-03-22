@@ -10,45 +10,64 @@
         <div class="row">
             <div class="col-lg-12">
                 <form>
+                  <small>Share this code with others to allow them to join the party</small><br>
+                  <h4 style="color:#fa6900;">Party Code: {{partyCode}}</h4>
+                  
                   <div class="form-group">
-                    <label for="numParticipants">Maximum Number of Participants: {{currMaxParticipants}}</label>
-                    <input ng-show="isAdmin" ng-model="numParticipants" type="number" class="form-control" id="numParticipants" placeholder="{{currMaxParticipants}}" min="0"></input>
+                    <label for="numParticipants">Maximum Number of Participants:</label><br>
+                    <small>This is the maximum number of people allowed in the party at one time</small>
+                    <input ng-hide="isAdmin" ng-model="currMaxParticipants" type="number" class="form-control" id="numParticipants" min="0" style="width: 25%;" ng-disabled="true"></input>
+                    <input ng-show="isAdmin" ng-model="currMaxParticipants" type="number" class="form-control" id="numParticipants" min="0" style="width: 25%;"></input>
                   </div>
                   <div class="form-group">
-                    <label for="maxQueue">Maximum Size of the Song Queue: {{currMaxQueue}}</label>
-                    <input ng-show="isAdmin" ng-model="maxQueue" type="number" class="form-control" id="maxQueue" placeholder="{{currMaxQueue}}" min="0"></input>
+                    <label for="maxQueue">Maximum Size of the Song Queue:</label><br>
+                    <small>This is the maximum number of songs allowed in the queue at one time</small>
+                    <input ng-hide="isAdmin" ng-model="currMaxQueue" type="number" class="form-control" id="maxQueue" min="0"style="width: 25%;" ng-disabled="true"></input>
+                    <input ng-show="isAdmin" ng-model="currMaxQueue" type="number" class="form-control" id="maxQueue"min="0" style="width: 25%;"></input>
                   </div>
                   <div class="form-group">
-                      <div class="checkbox">
+                      <div class="checkbox disabled" ng-hide="isAdmin">
                         <label>
-                          <input type="checkbox" id="virtualDJ"> <b>Virtual DJ</b> - Plays airhorn between song changes
+                          <input type="checkbox" id="virtualDJ" ng-disabled="true"></input><b>Virtual DJ</b> <small>Plays airhorn between song changes</small>
+                        </label>
+                      </div>
+                      <div class="checkbox" ng-show="isAdmin">
+                        <label>
+                          <input type="checkbox" id="virtualDJ"></input><b>Virtual DJ</b> <small>Plays airhorn between song changes</small>
                         </label>
                       </div>
                   </div>
                   <div class="form-group">
-                    <label for="genreSelect">Default Radio Genre on Empty Playlist: {{genreValueLabel}}</label>
-                    <select ng-show="isAdmin" id="genreSelect"class="form-control" ng-model="genreValue" ng-init="genreValue = genres[0]" ng-options="genre as genre.label for genre in genres"></select>
+                    <label for="genreSelect">Default Radio Genre on Empty Playlist:</label><br>
+                    <small>This selects the genre of songs to be automatically played in the case that there are no songs in the queue</small>
+
+                    <select class="form-control" ng-model="genreValue" ng-options="genre as genre.label for genre in genres track by genre.value" style="width: 25%;" ng-disabled="!isAdmin"></select>
+
                   </div>
 
                   <div ng-show="showAdminControl">
-                    <button class="btn btn-primary" type="button" ng-click="update();">Update</button>
-                    <h6>Admin Code: {{adminCode}}</h6>
-                  </div>
+                    <button class="btn btn-primary" type="button" ng-click="update();">Update Options</button><br><br>
+                    <label>Admin Code: </label> {{adminCode}}<br>
+                    <small>Share this code with other users for them to be promoted to admin</small><br>
+                  </div><br>
 
-                  <div class="form-group">
-                    <label>
-                      <b>Promote to Admin</b> - Enter the provided code to be promoted to admin
-                    </label>
-                  <div class="input-group" ng-hide="showAdminControl" style="width: 50%;">
-                    
+                  
+                  <div class="input-group" ng-hide="showAdminControl" style="width: 25%;">
+                    <div class="form-group">
+                    <label>Promote to Admin</label><br>
+                    <small>Enter the provided code to be promoted to admin</small>
                     <input class="form-control" type="text" ng-model="adminCode" placeholder="Admin Code"></input>
                     <span class="input-group-btn">
                       <button class="btn btn-primary" ng-click="promoteUser();">Promote</button>
                     </span>
                   </div>
                 </div>
-
-                  <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
+                <div class="form-group">
+                  <label>Player Request</label><br>
+                  <small>Request to be the player, which means the music will play from your device</small><br>
+                  <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button><br>
+                </div>
+                <button ng-show="isPlayer" class="btn btn-primary" ng-click="loginPlayer();"><img ng-show="isPlayer" class="img-responsive" src="res/powered.png" alt="" height="40" width = "90"></img>Login</button>
                 </form>
             </div>
         </div>
