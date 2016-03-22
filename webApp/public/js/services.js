@@ -598,8 +598,10 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
                         else {
                             if(res.data.is_playing && !_playerSeesEmpty)
                                 DZ.player.play();
-                            else
+                            else if (!_playingRadio && _playerSeesEmpty) {
+                                console.log("Pausing");
                                 DZ.player.pause();
+                            }
                         }
 
                         //update completed duration if playing from playlist
@@ -675,15 +677,12 @@ servicesModule.service('playerService', function($rootScope, $interval, $q, play
             else {
                  _playerSeesEmpty = true;
                 if(!_playingRadio && optionsService.getDefaultGenre() != null) {
+                    _playingRadio = true;
                     var station = getRadioStation();
                     $.notify("No more playthroughs in playlist, playing radio.", "info");
                     DZ.player.playRadio(station);
-                    _playingRadio = true;
                     $rootScope.isPlayingRadio = _playingRadio;
                 } 
-                else{
-                        DZ.player.pause();
-                }
             }
         }
     }
