@@ -62,7 +62,7 @@
 <body class="index" init-notifications ng-controller="MainController">
 
     <!-- Navigation -->
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar-default" ng-controller="NavController">
         <div class="container">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header page-scroll">
@@ -72,18 +72,18 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <p class="navbar-brand">{{displayName}}</p>
+                <p class="navbar-brand">{{(user.username) ? 'Ahoy, '+user.username+'!' : 'Who be ye?'}}</p>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <a class="audiocontrol" ng-show="isAdmin" ng-click="play();"><i class="fa fa-play fa-lg"></i></a>
-                    <a class="audiocontrol" ng-show="isAdmin" ng-click="pause();"><i class="fa fa-pause fa-lg"></i></a>
+                    <a class="audiocontrol" ng-show="user.isAdmin && !party.is_playing" ng-click="setPlaying(true);"><i class="fa fa-play fa-lg"></i></a>
+                    <a class="audiocontrol" ng-show="user.isAdmin && party.is_playing" ng-click="setPlaying(false);"><i class="fa fa-pause fa-lg"></i></a>
                     
                     <!--<button ng-show="isAdmin" class="btn btn-default" ng-click="veto();"><i class="fa fa-ban fa-2x"></i></button>-->
                     <button ng-show="isPlayer" class="btn navbar-btn btn-default" ng-click="loginPlayer();"><i class="fa fa-sign-in"></i></button>
                 </ul>
-                <ul class="nav navbar-nav navbar-right" ng-controller="NavController">
+                <ul class="nav navbar-nav navbar-right">
                     <li class="hidden">
                         <a href=""></a>
                     </li>

@@ -1,34 +1,61 @@
 var servicesModule = angular.module('servicesModule',[]);
 
 servicesModule.service('PartyService', function() {
+    var publisher = new Util.Publisher();
+
     return {
         code: null,
         admin_code: null,
         player: null,
         is_playing: null,
 
-        isActive: function() { return this.code !== null; }
+        isActive: function() { return this.code !== null; },
+
+        subscribeToUpdate: publisher.subscribe,
+
+        applyUpdate: function(update) {
+            Util.applyUpdate(this, update);
+            publisher.publish(this);
+        }
     };
 });
 
 servicesModule.service('UserService', function(PartyService) {
+    var publisher = new Util.Publisher();
+
     return {
         code: null,
         username: null,
+        is_admin: null,
 
-        isPlayer: function() { return this.username && (this.username == PartyService.player); }
+        isPlayer: function() { return (this.username !== null) && (this.username == PartyService.player); },
+
+        subscribeToUpdate: publisher.subscribe,
+
+        applyUpdate: function(update) {
+            Util.applyUpdate(this, update);
+            publisher.publish(this);
+        }
     };
 });
 
 servicesModule.service('OptionsService', function() {
     var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
+    var publisher = new Util.Publisher();
 
     var service = {
         user_cap: null,
         playthrough_cap: null,
         virtual_dj: null,
         veto_ratio: null,
-        default_genre: null
+        default_genre: null,
+
+        subscribeToUpdate: publisher.subscribe,
+
+        applyUpdate: function(update) {
+            Util.applyUpdate(this, update);
+            publisher.publish(this);
+        }
     };
 
     function getGenreLabel() {
@@ -36,6 +63,8 @@ servicesModule.service('OptionsService', function() {
         if(dg ==  null || dg < 0 || dg >= genreLabels.length) { return 'None'; }
         else { return genreLabels[dg]; }
     }
+
+    return service;
 });
 
 servicesModule.service('SongCacheService', function() {
@@ -50,36 +79,45 @@ servicesModule.service('SongCacheService', function() {
     };
 });
 
-servicesModule.service('playlistService', function() {
-	var _emptyPlaylist = true;
-	var _playlist = [];
-    var _playerInitialized = false;
-	return {
-		isEmpty: function() {
-			return _emptyPlaylist;
-		},
-		getPlaylist: function() {
-			return _playlist;
-		},
-        getTopPlaythrough: function() {
-            for (var i=0; i<_playlist.length; i++) {
-                if(_playlist[i].position == 0)
-                    return _playlist[i];
-            }
-            return false;
-        },
-		setPlaylist: function(playlist) {
-			_playlist = playlist;
-            if(playlist.length) {
-               _emptyPlaylist = false;
-                return true; 
-            }
-            return false;
-		},
-	}
+servicesModule.service('PlaylistService', function() {
+    function posPred(a, b) { a.position - b.position; }
+
+    var service = [ ];
+    var publisher = new Util.Publisher();
+
+    service.applyUpdate = function(items) {
+        var mapOld = { }, mapNew = { };
+        this.forEach(function(item) { mapOld[item.code] = item; });
+        items.forEach(function(item) { mapNew[item.code] = item; });
+
+        // Remove old entries absent in update
+        for(var code in mapOld) {
+            if (!mapNew[code]) { delete mapOld[code]; }
+        }
+
+        // Add or update old entries based on update
+        for(var code in mapNew) {
+            if (!mapOld[code]) { mapOld[code] = mapNew[code]; }
+            else { Util.applyUpdate(mapOld[code], mapNew[code]); }
+        }
+
+        this.length = 0;
+        for(var code in mapOld) {
+            this.push(mapOld[code]);
+        }
+        this.sort(posPred);
+
+        publisher.publish(this);
+    };
+
+    service.top = function() { return this[0]; };
+
+    service.subscribeToUpdate = publisher.subscribe;
+
+    return service;
 });
 
-servicesModule.service('NetService', function($http, $q, PartyService, UserService) {
+servicesModule.service('NetService', function($http, $q, PartyService, UserService, SongCacheService) {
     var serverAddress = 'https://api.partyshark.tk';
 
 	return {
@@ -88,7 +126,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                 .then(function(response, headers) {
                     return {
                         party: response.data,
-                        UserService.code = response.headers(['x-set-user-code']);
+                        userCode: 0 + response.headers(['x-set-user-code'])
                     };
                 });
 		},
@@ -109,10 +147,13 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         createSelf: function() {
             return $http.post(serverAddress+'/parties/'+PartyService.code+'/users')
                 .then(function(response) {
-                    return {
-                        party: response.data,
-                        UserService.code = response.headers(['x-set-user-code']);
-                    };
+                    return response.data;
+                });
+        },
+        getSelf: function() {
+            return $http.get(serverAddress+'/parties/'+PartyService.code+'/users/self', {headers: {'x-user-code': UserService.code}})
+                .then(function(response) {
+                    return response.data;
                 });
         },
         deleteSelf: function() {
@@ -255,7 +296,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
 	}
 });
 
-servicesModule.service('playerService', function($rootScope, $interval, $q, playlistService, OptionsService, NetService, PartyService) {
+servicesModule.service('PlayerService', function($rootScope, $interval, $q, PlaylistService, OptionsService, NetService, PartyService) {
 
     var nowPlayingCode = 1, radioIsQueued = false;
     var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
@@ -345,6 +386,44 @@ servicesModule.service('SoundsService', function($interval) {
     return service;
 });
 
+servicesModule.service('PollingService', function($interval, $q, NetService, PartyService, PlayerService, PlaylistService, OptionsService) {
+
+    var paused = false;
+
+    $interval(function() {
+        if(PartyService.isActive() && !paused) {
+            NetService.getParty().then(function(partyUpdate) {
+                PartyService.applyUpdate(partyUpdate);
+            });
+
+            NetService.getPartySettings().then(function(partySettingsUpdate) {
+                OptionsService.applyUpdate(partySettingsUpdate);
+            });
+
+            NetService.getPlaylist().then(function(playlistUpdate) {
+                var songPromises = [ ];
+
+                playlistUpdate.forEach(function(play) {
+                    var songPromise = NetService.getSong(play.song_code);
+                    songPromises.push(songPromise);
+                    songPromise.then(function(song) {
+                        play.song = song;
+                    });
+                });
+
+                // Update the playlist when all song promises have completed
+                $q.all(songPromises).then(function() {
+                    PlaylistService.applyUpdate(playlistUpdate);
+                })
+            });
+        }
+    }, 3000);
+
+    return {
+        pause: function() { paused = true; },
+        resume: function() { paused = false; }
+    };
+});
 
 
 
