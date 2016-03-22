@@ -1,6 +1,6 @@
 
     <body class="index">
-        <div ng-show="emptyPlaylist">
+        <div ng-show="playlist.length == 0">
             <section>
                 <div class="row" style="height:400px;overflow:auto;">
                     <div class="container">
@@ -25,7 +25,7 @@
                                     <h4>{{playthrough.song.album}}</h4>
                                     <h4>{{playthrough.song.duration * playthrough.completed_ratio | date:'mm:ss'}} / {{playthrough.song.duration | date:'mm:ss'}}</h4>
 
-                                    <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
+                                    <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
                                     <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
 
@@ -44,7 +44,7 @@
                             </div>
 
                         </div>
-                        <hr class="star-primary"></hr>
+                        <hr class="star-primary" />
                     </div>
 
                     <!-- Remaining playthrough tiles -->
@@ -59,7 +59,7 @@
                                     <p>{{playthrough.song.album}}</p>
                                     <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
 
-                                    <button ng-show="isAdmin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
+                                    <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
                                     <p>Suggested by {{playthrough.suggester}}</p>
                                 </div>
                             </div>

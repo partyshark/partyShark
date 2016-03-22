@@ -6,33 +6,29 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
     PlaylistService.subscribeToUpdate(updatePlayer);
 
     function updatePlayer() {
-        if (UserService.isPlayer()) {
-            //Check to make sure current playing is still at pos 0
-            var nowPlaying = PlaylistService.top();
-            var hasContent = false;
-            if(nowPlaying) {
-                if(nowPlaying.song_code != PlayerService.nowPlayingCode()) {
-                    PlayerService.queueSong(nowPlaying.song_code);
-                    hasContent = true;
-                    Util.log('queued track');
-                }
-            }
-            else if(OptionsService.default_genre !== null && !PlayerService.radioIsQueued()) {
-                PlayerService.queueStation(OptionsService.default_genre);
-                hasContent = true;
-                Util.log('queued radio');
-            }
-            else {
-                PlayerService.pause();
-            }
-
-            if (hasContent && PartyService.is_playing) {
-                PlayerService.play();
-                Util.log('play');
-            }
+        if (!UserService.isPlayer() || !PartyService.is_playing) {
+            PlayerService.pause();
         }
         else {
-            PlayerService.pause();
+            PlayerService.play();
+        }
+
+        //Check to make sure current playing is still at pos 0
+        var nowPlaying = PlaylistService.top();
+        if(nowPlaying) {
+            if(nowPlaying.song_code != PlayerService.nowPlayingCode()) {
+                PlayerService.queueSong(nowPlaying.song_code);
+                Util.log('queued track');
+            }
+        }
+        else if(OptionsService.default_genre !== null) {
+            if(!PlayerService.radioIsQueued()) {
+                PlayerService.queueStation(OptionsService.default_genre);
+                Util.log('queued radio');
+             }
+        }
+        else {
+            PlayerService.queueSong(null);
         }
     }
 
@@ -41,21 +37,13 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
             SoundsService.playRapHorn();
         }
     });
+
+    $scope.user = UserService;
+    $scope.party = PartyService;
 });
 
 controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, PartyService, NetService, PlayerService, UserService) {
-    $scope.user = UserService;
-    $scope.party = PartyService;
-
     $scope.displayName = "Ahoy, " + PartyService.username + "!";
-    $rootScope.progressValue = 0;
-    $rootScope.displayName = "PartyShark";
-
-    if(PartyService.code)
-        $window.location.reload();
-
-    //Cancel interval if not player
-    //PlayerService.stopPlayerInterval();
 
     $scope.dock = function() {
         $location.path('/'+PartyService.code+'/playlist');
@@ -90,7 +78,7 @@ controllersModule.controller('NavController', function($scope, $interval, $windo
 
     $scope.setPlaying = function(value) {
         var keyWord = value ? 'Play' : 'Pause';
-        NetService.updateParty(PartyService.code, {is_playing: value}).then(
+        NetService.updateParty({is_playing: value}).then(
             function(data) {
                 $.notify('Sent '+keyWord, "success");
                 PartyService.applyUpdate(data);
@@ -364,7 +352,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     }
 });
 
-controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, UserService, PlaylistService, PartyService, OptionsService, NetService, PlayerService) {
+controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, UserService, PlaylistService, PartyService, OptionsService, NetService, PlayerService, PollingService) {
 	$rootScope.topButtons = ["dock", "search", "options", "exit"];
 
     var usersRequestingPlayerIgnoredCodes = [];
@@ -425,22 +413,24 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
             playthrough.vote = null;
         }
         
-        NetService.updateCurrentPlaythrough(PartyService.code, playthrough.code, vote)
-            .then(function(response) {
+        NetService.updatePlaythrough(playthrough.code, {vote: vote}).then(
+            function(playUpdate) {
                 $.notify("Vote was added!", "success");
-                PlaylistService.getPlaylist().findIndex(function(element, index, array) {
-                    if(element.code == playthroughCode) {
-                        element.upvotes = response.upvotes;
-                        element.downvotes = response.downvotes;
-                        element.position = response.position;
-                    }
-                });
-                $scope.playlist = PlaylistService.getPlaylist();
+                PollingService.pause();
+
+                NetService.getPlaylist()
+                    .then(function(playlistUpdate) {
+                        PlaylistService.applyUpdate(playlistUpdate)
+                    })
+                    .finally(function() {
+                        PollingService.resume();
+                    });
             },
             function(error) {
-                console.log(error);
+                Util.log(error);
                 $.notify("Vote was not added to the playthrough.", "error");
-            });
+            }
+        );
     }
 
     $scope.veto = function(playthroughCode) {

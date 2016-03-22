@@ -301,6 +301,7 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
     var nowPlayingCode = 1, radioIsQueued = false;
     var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
     var trackEnd = new Util.Publisher(), playerPosition = new Util.Publisher(), trackChanged = new Util.Publisher();
+    var shouldPlay = false, hasContent = false;
 
     function getRadioStation() {
         var genre = OptionsService.getDefaultGenre();
@@ -329,24 +330,49 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
         }
     });
 
+    function pausePlay() {
+        if (shouldPlay && hasContent) {
+            DZ.player.play();
+        }
+        else {
+            DZ.player.pause();
+        }
+    }
 
     var service = {
         subscribeToTrackEnd: trackEnd.subscribe,
 
         subscribeToPlayerPosition: playerPosition.subscribe,
 
-        queueSong: function(songCode) { 
-            DZ.player.playTracks([songCode]);
-            radioIsQueued = false;
+        pause: function() {
+            shouldPlay = false;
+            pausePlay();
         },
 
-        pause: function() { DZ.player.pause(); },
+        play: function() {
+            shouldPlay = true;
+            pausePlay();
+        },
 
-        play: function() { DZ.player.play(); },
+        queueSong: function(songCode) {
+            DZ.player.playTracks([songCode]);
+
+            if (songCode || songCode === 0) {
+                hasContent = true;
+                radioIsQueued = false;
+            }
+            else {
+                hasContent = false;
+            }
+
+            pausePlay();
+        },
 
         queueStation: function(stationCode) { 
             DZ.player.playRadio(getRadioStation(stationCode));
             radioIsQueued = true;
+            hasContent = true;
+            pausePlay();
         },
 
         nowPlayingCode: function() {
