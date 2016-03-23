@@ -177,6 +177,15 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                     return response.data;
                 });
         },
+        updateSelf: function(update) {
+            var req = {
+                 method: 'PUT',
+                 url: serverAddress+'/parties/'+PartyService.code+'/users/self',
+                 headers: {'x-user-code': UserService.code},
+                 data: update
+            };
+            return $http(req).then(function(response) { return response.data; });
+        },
         deleteSelf: function() {
             var req = {
                  method: 'DELETE',
