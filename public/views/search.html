@@ -19,12 +19,14 @@
                     <table class="table table-condensed table-hover">
                         <thead>
                             <tr>
+                                <th>Scheduled</th>
                                 <th>Title</th>
                                 <th>Artist</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr ng-repeat="song in searchResults" ng-click="addSong(song.code, song.title, song.artist);">
+                                <td><i class="fa fa-check-circle ps_green" ng-show="isScheduled(song.code)"></i></td>
                                 <td>{{song.title}}</td>
                                 <td>{{song.artist}}</td>
                             </tr>

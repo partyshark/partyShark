@@ -113,6 +113,21 @@ servicesModule.service('PlaylistService', function() {
         publisher.publish(this);
     };
 
+    service.commit = function(play) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i].code == play.code) {
+                Util.applyUpdate(this[i], play);
+                break
+            }
+        }
+        if (i == this.length) {
+            this.push(play);
+        }
+        this.sort(posPred);
+
+        publisher.publish(this);
+    };
+
     service.top = function() { return this[0]; };
 
     service.subscribeToUpdate = publisher.subscribe;
@@ -450,11 +465,11 @@ servicesModule.service('PollingService', function($interval, $q, NetService, Par
                 var songPromises = [ ];
 
                 playlistUpdate.forEach(function(play) {
-                    var songPromise = NetService.getSong(play.song_code);
-                    songPromises.push(songPromise);
-                    songPromise.then(function(song) {
-                        play.song = song;
-                    });
+                    songPromises.push(
+                        NetService.getSong(play.song_code).then(
+                            function(song) { play.song = song;}
+                        )
+                    );
                 });
 
                 // Update the playlist when all song promises have completed

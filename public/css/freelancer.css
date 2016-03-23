@@ -504,7 +504,7 @@ footer .footer-below {
     color: #BE3636;
 }
 
-i#upvotes{
+i#upvotes, i.ps_green {
     color: #85BF25;
 }
 i#downvotes{
@@ -530,6 +530,7 @@ i#downvotes{
 
 .ps_album-art {
     height: 100%;
+    max-height: 100%;
     display: inline-block;
     margin-right: 5px;
     vertical-align: top;

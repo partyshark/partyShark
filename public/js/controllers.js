@@ -345,26 +345,49 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
 
 controllersModule.controller('searchController', function($scope, $location, $rootScope, PartyService, PlaylistService, NetService) {
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
+
     $scope.submitSearch = function() {
-        NetService.searchSongs($scope.searchParams)
-            .then(function(results) {
-                if (!results.length)
+        NetService.searchSongs($scope.searchParams).then(
+            function(results) {
+                if (results.length == 0) {
                     $.notify("Search returned no results.", "info");
-                //Array of song objects
+                }
+
                 $scope.searchResults = results;
-            }, function(error) {
-                console.log(error);
+            },
+            function(error) {
+                Util.log(error);
                 $.notify("Could not complete search.", "error");
-            });
-    },
+            }
+        );
+    };
+
     $scope.addSong = function(songCode, songTitle, songArtist) {
-        NetService.createPlaythrough(songCode)
-            .then(function(data) {
-                $.notify(songTitle+" by "+songArtist+" was added", "success");
-            }, function(error) {
-                console.log(error);
+        NetService.createPlaythrough(songCode).then(
+            function(play) {
+
+                NetService.getSong(songCode).then(
+                    function(song) {
+                        play.song = song;
+                    }
+                ).finally(function() {
+                    PlaylistService.commit(play);
+                    $.notify(songTitle+" by "+songArtist+" was added.", "success");
+                });
+
+            },
+            function(error) {
+                Util.log(error);
                 $.notify("Error adding song to playlist.", "error");
-            });
+            }
+        );
+
+    };
+
+    $scope.isScheduled = function(songCode) {
+        return PlaylistService.some(
+            function(play) { return play.song_code == songCode; }
+        );
     }
 });
 
