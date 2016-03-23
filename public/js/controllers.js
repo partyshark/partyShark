@@ -230,7 +230,9 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 
     $scope.promoteUser = function() {
         if (UserService.is_admin) { return; }
-        NetService.updateSelf({admin_code: parseInt($scope.tempModel.admin_code)}).then(
+
+        var update = {admin_code: Convert.toNumberLax($scope.tempModel.is_admin)}
+        NetService.updateSelf(update).then(
             function(self) {
                 UserService.applyUpdate(self);
                 if(self.is_admin) {

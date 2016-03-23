@@ -1,4 +1,4 @@
-Util = {
+Util = Object.freeze({
     log: console.log.bind(console),
 
     reviveDataset: function(dataset) {
@@ -56,4 +56,38 @@ Util = {
             for(var i = 0; i < subs.length; i++) { subs[i](arg); }
         };
     }
-}
+});
+
+Convert = Object.freeze({
+    toNumberLax: function(v) {
+        var k = 1 * v;
+        return ((v || v === 0) && (k || k === 0)) ? k : null;
+    },
+    toNumberStrict: function(v) {
+        var k = this.toNumberLax(v);
+        if (k === null) { throw TypeError('Conversion failed on object: '+v); }
+        return k;
+    },
+    toBoolLax: function(v) {
+        var k = this.toNumberLaz(v);
+        return (k === null) ? null : !!k;
+    },
+    toBoolStrict: function(v) {
+        return !!v;
+    },
+    toStringLax: function(v) {
+        return (v === null || v === undefined || isNan(v)) ? null : JSON.stringify(v);
+    },
+    toStringStrict: function(v) {
+        var k = this.toStringLax(v);
+        if (k === null) { throw TypeError('Conversion failed on object: '+v); }
+        return k;
+    },
+    toIntLax: function(v) {
+        var k = this.toNumberLax(v);
+        return (k === null) ? null : Math.round(k);
+    },
+    toIntStrict: function(v) {
+        return Math.round(this.toNumberStrict(v));
+    }
+});

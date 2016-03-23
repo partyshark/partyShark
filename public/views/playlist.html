@@ -17,10 +17,12 @@
                     <div ng-repeat-start="playthrough in playlist | orderBy:'position':false" ng-if="$first">
                         <div class='well well-sm media song ps_now-playing' ng-model="playthrough.position">
 
-                            <div class='media-body'>
+                            <div class="media-left">
                                 <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt=''>
+                            </div>
 
-                                <div style="height: 100%; display: inline-block">
+                            <div class='media-body ps_playthrough-text'>
+                                <div>
                                     <h3 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h3>
                                     <h4>{{playthrough.song.album}}</h4>
                                     <h4>{{playthrough.song.duration * playthrough.completed_ratio | date:'mm:ss'}} / {{playthrough.song.duration | date:'mm:ss'}}</h4>
@@ -28,7 +30,6 @@
                                     <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
                                     <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
-
                             </div>
 
                             <div class="media-right text-center">
@@ -36,6 +37,7 @@
                                 <h3 class="text-center ps_m-v-1">{{playthrough.upvotes - playthrough.downvotes}}</h3>
                                 <button class="ps_downvote btn ps_m-v-1" ng-class="{'ps_active-btn': playthrough.vote == 1}" ng-click="votePlaythrough(playthrough, 1);"><i class="fa fa-arrow-circle-down fa-2x"></i></button>
                             </div>
+
                             <br>
                             <div class="progress">
                               <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{playthrough.completed_ratio}}" aria-valuemin="0" aria-valuemax="1" style="width:{{playthrough.completed_ratio * 100}}%">
@@ -50,16 +52,18 @@
                     <div class="ps_compressor-h" ng-repeat-end="playthrough in playlist | orderBy:'position':false" ng-if="!$first">
                         <div class='well well-sm media' ng-model="playthrough.position">
 
-                            <div class='media-body'>
-                                <img class="ps_album-art" data-ng-src='{{playthrough.song.art}}' alt=''>
+                            <div class="media-left">
+                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt=''>
+                            </div>
 
-                                <div style="height: 100%; display: inline-block">
+                            <div class='media-body ps_playthrough-text'>
+                                <div>
                                     <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h4>
-                                    <p>{{playthrough.song.album}}</p>
-                                    <p>{{playthrough.song.duration | date:'mm:ss'}}</p>
+                                    <h5>{{playthrough.song.album}}</h5>
+                                    <h5>{{playthrough.song.duration | date:'mm:ss'}}</h5>
 
                                     <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
-                                    <p>Suggested by {{playthrough.suggester}}</p>
+                                    <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
                             </div>
 
