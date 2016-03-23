@@ -14,6 +14,7 @@ servicesModule.service('PartyService', function() {
         subscribeToUpdate: publisher.subscribe,
 
         applyUpdate: function(update) {
+            if (!update) { update = {code: null, admin_code: null, player: null, is_playing: null}; }
             Util.applyUpdate(this, update);
             publisher.publish(this);
         }
@@ -33,6 +34,7 @@ servicesModule.service('UserService', function(PartyService) {
         subscribeToUpdate: publisher.subscribe,
 
         applyUpdate: function(update) {
+            if (!update) { update = {code: null, is_admin: null, username: null}; }
             Util.applyUpdate(this, update);
             publisher.publish(this);
         }
@@ -53,6 +55,7 @@ servicesModule.service('OptionsService', function() {
         subscribeToUpdate: publisher.subscribe,
 
         applyUpdate: function(update) {
+            if (!update) { update = {user_cap: null, playthrough_cap: null, virtual_dj: null, veto_ratio: null, default_genre: null}; }
             Util.applyUpdate(this, update);
             publisher.publish(this);
         }
@@ -145,9 +148,12 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         },
 
         createSelf: function() {
-            return $http.post(serverAddress+'/parties/'+PartyService.code+'/users')
+            return $http.post(serverAddress+'/parties/'+PartyService.code+'/users', { })
                 .then(function(response) {
-                    return response.data;
+                    return {
+                        self: response.data,
+                        userCode: 0 + response.headers(['x-set-user-code'])
+                    };
                 });
         },
         getSelf: function() {
@@ -157,10 +163,13 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                 });
         },
         deleteSelf: function() {
-            return $http.delete(serverAddress+'/parties/'+PartyService.code+'/users/self', {headers: {'x-user-code': UserService.code}})
-                .then(function(response) {
-                    return response.data;
-                });
+            var req = {
+                 method: 'DELETE',
+                 url: serverAddress+'/parties/'+PartyService.code+'/users/self',
+                 headers: {'x-user-code': UserService.code},
+                 data: {}
+            };
+            return $http(req).then(function(response) { return null; });
         },
 
         getPlayerTransferRequest: function(transferCode) {
@@ -187,7 +196,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                  url: serverAddress+'/parties/'+PartyService.code+'/playertransfers/'+transferCode,
                  headers: {'x-user-code': UserService.code},
                  data: {'status': 1}
-            }
+            };
             return $http(req)
                 .then(function(response) {
                     return response.data;
@@ -220,7 +229,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                  url: serverAddress+'/parties/'+PartyService.code+'/playlist/'+playthroughCode,
                  headers: {'x-user-code': UserService.code},
                  data: {}
-            }
+            };
             return $http(req).then(function(response) { return null; });
         },
 		updatePlaythrough: function(playthroughCode, update) {
@@ -229,7 +238,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                  url: serverAddress+'/parties/'+PartyService.code+'/playlist/'+playthroughCode,
                  headers: {'x-user-code': UserService.code},
                  data: update
-            }
+            };
             return $http(req).then(function(response) { return response.data; });
 		},
 
@@ -243,7 +252,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
 				 url: serverAddress+'/parties/'+PartyService.code+'/settings',
 				 headers: {'x-user-code': UserService.code},
 				 data: update
-			}
+			};
 			return $http(req).then(function(response) { return response.data; });
 		},
 
@@ -304,7 +313,7 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
     var shouldPlay = false, hasContent = false;
 
     function getRadioStation() {
-        var genre = OptionsService.getDefaultGenre();
+        var genre = OptionsService.default_genre;
         if(genre == null || genre < 0 || genre >= stations.length) { return -1; }
         else { return stations[genre]; }
     }
@@ -324,7 +333,11 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
                     $rootScope.$apply(function() { trackChanged.publish(song.track); });
                 });
                 DZ.Event.subscribe('player_position', function(pos) {
-                    $rootScope.$apply(function() { playerPosition.publish(pos); });
+                    if (!pos[1]) { return; }
+
+                    if (pos[0] || pos[0] === 0) {
+                        $rootScope.$apply(function() { playerPosition.publish(pos[0] / pos[1]); });
+                    }
                 });
             }
         }
@@ -380,7 +393,13 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
             return (!track) ? null : track.id;
         },
 
-        radioIsQueued: function() { return radioIsQueued; }
+        radioIsQueued: function() { return radioIsQueued; },
+
+        availableGenres: (function() {
+            var ret = ['Classic Rock', 'Metal', 'Jazz', 'Country', 'Top Hits', 'Classical', 'Folk', 'Electronic'];
+            ret[null] = 'None';
+            return Object.freeze(ret);
+        })()
     };
 
     return service;
@@ -412,12 +431,13 @@ servicesModule.service('SoundsService', function($interval) {
     return service;
 });
 
-servicesModule.service('PollingService', function($interval, $q, NetService, PartyService, PlayerService, PlaylistService, OptionsService) {
+servicesModule.service('PollingService', function($interval, $q, NetService, PartyService, PlayerService, PlaylistService, OptionsService, UserService) {
 
-    var paused = false;
+    var pullPaused = false;
 
+    // Pull in data
     $interval(function() {
-        if(PartyService.isActive() && !paused) {
+        if(PartyService.isActive() && !pullPaused) {
             NetService.getParty().then(function(partyUpdate) {
                 PartyService.applyUpdate(partyUpdate);
             });
@@ -446,8 +466,8 @@ servicesModule.service('PollingService', function($interval, $q, NetService, Par
     }, 3000);
 
     return {
-        pause: function() { paused = true; },
-        resume: function() { paused = false; }
+        pausePull: function() { pullPaused = true; },
+        resumePull: function() { pullPaused = false; }
     };
 });
 

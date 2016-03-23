@@ -8,9 +8,9 @@
                     <hr class="star-light">
                     <p>Please enter the party code:</p>
                     <div class="col-lg-6 col-lg-offset-3 text-center">
-                        <form ngSubmit="joinParty();">
+                        <form ng-submit="joinParty();">
                         <div class="input-group">
-                            <input type="text" class="form-control" ng-model="partyCode">
+                            <input type="text" class="form-control" ng-model="party.code">
                             <span class="input-group-btn"> 
                                 <button class="btn btn-primary" type="button" ng-click="joinParty();">Join The Party!</button>
                             </span>
