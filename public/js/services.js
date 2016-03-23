@@ -410,11 +410,17 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
 
         radioIsQueued: function() { return radioIsQueued; },
 
-        availableGenres: (function() {
-            var ret = ['Classic Rock', 'Metal', 'Jazz', 'Country', 'Top Hits', 'Classical', 'Folk', 'Electronic'];
-            ret[null] = 'None';
-            return Object.freeze(ret);
-        })()
+        availableGenres: Object.freeze({
+            'None': null,
+            'Classic Rock': 0,
+            'Metal': 1,
+            'Jazz': 2,
+            'Country': 3,
+            'Top Hits': 4,
+            'Classical': 5,
+            'Folk': 6,
+            'Electronic': 7
+        })
     };
 
     return service;

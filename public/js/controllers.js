@@ -145,8 +145,15 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
     $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $rootScope.topButtons = [];
 
-    $scope.genres = PlayerService.availableGenres.map(function(item, index) { return {value: index, label: item}; })
-    $scope.genres.unshift({value: null, label: PlayerService.availableGenres[null]});
+    $scope.genres = PlayerService.availableGenres;
+
+    $scope.tempModel = {
+        user_cap: OptionsService.user_cap,
+        playthrough_cap: OptionsService.playthrough_cap,
+        virtual_dj: OptionsService.virtual_dj,
+        admin_code: PartyService.admin_code,
+        default_genre: OptionsService.default_genre
+    };
 
     $scope.startParty = function() {
         NetService.createParty().then(
@@ -155,16 +162,9 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
                 PartyService.applyUpdate(createPartyObj.party);
                 UserService.applyUpdate({code: createPartyObj.userCode});
 
-                var settingsUpdate = {
-                    default_genre: $scope.genreValue.value,
-                    user_cap: $scope.numParticipants,
-                    playthrough_cap: $scope.maxQueue,
-                    virtualdj: $scope.virtualDJ
-                };
-
-                var settingsPromise = NetService.updatePartySettings(settingsUpdate).then(
+                var settingsPromise = NetService.updatePartySettings($scope.tempModel).then(
                     function(updatedSettings) {
-                        OptionsService.applyUpdate(settingsUpdate);
+                        OptionsService.applyUpdate(updatedSettings);
                     },
                     function(error) {
                         $.notify("Error setting party settings.", "error");
@@ -203,12 +203,20 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, PartyService, OptionsService, NetService, PlaylistService, PlayerService, UserService) {
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
 
-    $scope.genres = PlayerService.availableGenres.map(function(item, index) { return {value: index, label: item}; })
-    $scope.genres.unshift({value: null, label: PlayerService.availableGenres[null]});
+    $scope.tempModel = {
+        user_cap: OptionsService.user_cap,
+        playthrough_cap: OptionsService.playthrough_cap,
+        virtual_dj: OptionsService.virtual_dj,
+        admin_code: PartyService.admin_code,
+        default_genre: OptionsService.default_genre
+    };
 
-    $scope.update = function() {
-        var update = {default_genre: $scope.genreValue.value, user_cap: $scope.maxParticipants, playthrough_cap: $scope.maxQueue};
-        NetService.updatePartySettings(update).then(
+    $scope.user = UserService;
+
+    $scope.genres = PlayerService.availableGenres;
+
+    $scope.update = function() {;
+        NetService.updatePartySettings($scope.tempModel).then(
             function(data) {
                 $.notify("Party settings changed!", "success");
                 $location.path('/'+PartyService.code+'/playlist');
@@ -221,7 +229,9 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     };
 
     $scope.promoteUser = function() {
-        NetService.updateSelf({admin_code: $scope.admin_code}).then(
+        if (UserService.is_admin) { return; }
+
+        NetService.updateSelf($scope.tempModel).then(
             function(self) {
                 UserService.applyUpdate(self);
                 if(self.is_admin) {
