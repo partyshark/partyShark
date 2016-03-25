@@ -24,11 +24,9 @@ a.active {
 a.audiocontrol {
     color: #ffffff;
     font-size: 19px;
-    height: 60px;
     line-height: 21px;
     padding: 19.5px 15px;
     line-height: 1;
-    float: left;
 }
 a.audiocontrol:hover,
 a.audiocontrol:focus,

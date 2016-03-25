@@ -55,6 +55,15 @@ Util = Object.freeze({
         this.publish = function(arg) {
             for(var i = 0; i < subs.length; i++) { subs[i](arg); }
         };
+    },
+
+    convertProperties: function(orig, conversions) {
+        for (var prop in orig) {
+            if (orig.hasOwnProperty(prop) && conversions.hasOwnProperty(prop)) {
+                orig[prop] = conversions[prop](orig[prop]);
+            }
+        }
+        return orig;
     }
 });
 
@@ -64,12 +73,12 @@ Convert = Object.freeze({
         return ((v || v === 0) && (k || k === 0)) ? k : null;
     },
     toNumberStrict: function(v) {
-        var k = this.toNumberLax(v);
+        var k = Convert.toNumberLax(v);
         if (k === null) { throw TypeError('Conversion failed on object: '+v); }
         return k;
     },
     toBoolLax: function(v) {
-        var k = this.toNumberLaz(v);
+        var k = Convert.toNumberLaz(v);
         return (k === null) ? null : !!k;
     },
     toBoolStrict: function(v) {
@@ -79,12 +88,12 @@ Convert = Object.freeze({
         return (v === null || v === undefined || isNan(v)) ? null : JSON.stringify(v);
     },
     toStringStrict: function(v) {
-        var k = this.toStringLax(v);
+        var k = Convert.toStringLax(v);
         if (k === null) { throw TypeError('Conversion failed on object: '+v); }
         return k;
     },
     toIntLax: function(v) {
-        var k = this.toNumberLax(v);
+        var k = Convert.toNumberLax(v);
         return (k === null) ? null : Math.round(k);
     },
     toIntStrict: function(v) {

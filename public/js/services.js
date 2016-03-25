@@ -1,8 +1,6 @@
 var servicesModule = angular.module('servicesModule',[]);
 
 servicesModule.service('PartyService', function() {
-    var publisher = new Util.Publisher();
-
     return {
         code: null,
         admin_code: null,
@@ -11,12 +9,9 @@ servicesModule.service('PartyService', function() {
 
         isActive: function() { return this.code !== null; },
 
-        subscribeToUpdate: publisher.subscribe,
-
         applyUpdate: function(update) {
             if (!update) { update = {code: null, admin_code: null, player: null, is_playing: null}; }
             Util.applyUpdate(this, update);
-            publisher.publish(this);
         }
     };
 });
@@ -31,19 +26,15 @@ servicesModule.service('UserService', function(PartyService) {
 
         isPlayer: function() { return (this.username !== null) && (this.username == PartyService.player); },
 
-        subscribeToUpdate: publisher.subscribe,
-
         applyUpdate: function(update) {
             if (!update) { update = {code: null, is_admin: null, username: null}; }
             Util.applyUpdate(this, update);
-            publisher.publish(this);
         }
     };
 });
 
 servicesModule.service('OptionsService', function() {
     var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
-    var publisher = new Util.Publisher();
 
     var service = {
         user_cap: null,
@@ -52,12 +43,10 @@ servicesModule.service('OptionsService', function() {
         veto_ratio: null,
         default_genre: null,
 
-        subscribeToUpdate: publisher.subscribe,
 
         applyUpdate: function(update) {
             if (!update) { update = {user_cap: null, playthrough_cap: null, virtual_dj: null, veto_ratio: null, default_genre: null}; }
             Util.applyUpdate(this, update);
-            publisher.publish(this);
         }
     };
 
@@ -86,9 +75,13 @@ servicesModule.service('PlaylistService', function() {
     function posPred(a, b) { a.position - b.position; }
 
     var service = [ ];
-    var publisher = new Util.Publisher();
 
     service.applyUpdate = function(items) {
+        if (!items) {
+            service.length = 0;
+            return;
+        }
+
         var mapOld = { }, mapNew = { };
         this.forEach(function(item) { mapOld[item.code] = item; });
         items.forEach(function(item) { mapNew[item.code] = item; });
@@ -109,8 +102,6 @@ servicesModule.service('PlaylistService', function() {
             this.push(mapOld[code]);
         }
         this.sort(posPred);
-
-        publisher.publish(this);
     };
 
     service.commit = function(play) {
@@ -124,13 +115,9 @@ servicesModule.service('PlaylistService', function() {
             this.push(play);
         }
         this.sort(posPred);
-
-        publisher.publish(this);
     };
 
     service.top = function() { return this[0]; };
-
-    service.subscribeToUpdate = publisher.subscribe;
 
     return service;
 });
@@ -153,11 +140,15 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                 .then(function(res) { return res.data; })
         },
         updateParty: function(update) {
+            var conversions = {
+                is_playing: Convert.toBoolStrict
+            };
+
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+PartyService.code,
                  headers: {'x-user-code': UserService.code},
-                 data: update
+                 data: Util.convertProperties(update, conversions)
             }
             return $http(req).then(function(response) { return response.data; });
         },
@@ -178,11 +169,15 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                 });
         },
         updateSelf: function(update) {
+            var conversions = {
+                admin_code: Convert.tooIntLax
+            };
+
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+PartyService.code+'/users/self',
                  headers: {'x-user-code': UserService.code},
-                 data: update
+                 data: Util.convertProperties(update, conversions)
             };
             return $http(req).then(function(response) { return response.data; });
         },
@@ -257,11 +252,16 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
             return $http(req).then(function(response) { return null; });
         },
 		updatePlaythrough: function(playthroughCode, update) {
+            var conversions = {
+                completed_ratio: Convert.toNumberStrict,
+                vote: Convert.toIntLax
+            };
+
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+PartyService.code+'/playlist/'+playthroughCode,
                  headers: {'x-user-code': UserService.code},
-                 data: update
+                 data: Util.convertProperties(update, conversions)
             };
             return $http(req).then(function(response) { return response.data; });
 		},
@@ -271,11 +271,18 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                 .then(function(response) { return response.data; });
 		},
 		updatePartySettings: function(update) {
+            var conversions = {
+                playthrough_cap: Convert.toIntLax,
+                user_cap: Convert.toIntLax,
+                virtual_dj: Convert.toBoolStrict,
+                veto_ratio: Convert.toNumberStrict
+            };
+
 			var req = {
 				 method: 'PUT',
 				 url: serverAddress+'/parties/'+PartyService.code+'/settings',
 				 headers: {'x-user-code': UserService.code},
-				 data: update
+				 data: Util.convertProperties(update, conversions)
 			};
 			return $http(req).then(function(response) { return response.data; });
 		},
@@ -332,10 +339,12 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
 
 servicesModule.service('PlayerService', function($rootScope, $interval, $q, PlaylistService, OptionsService, NetService, PartyService) {
 
-    var nowPlayingCode = 1, radioIsQueued = false;
+    var cuedSongCode = null, shouldPlay = false, pendingStart = false;
+
     var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
-    var trackEnd = new Util.Publisher(), playerPosition = new Util.Publisher(), trackChanged = new Util.Publisher();
-    var shouldPlay = false, hasContent = false;
+
+    var songStart = new Util.Publisher(), songEnd = new Util.Publisher(), songPosition = new Util.Publisher();
+
 
     function getRadioStation() {
         var genre = OptionsService.default_genre;
@@ -350,75 +359,76 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
         player : {
             onload : function() {
                 $.notify("Player is initialized.", "success");
+                DZ.player.playTracks([null]);
 
-                DZ.Event.subscribe('track_end', function(song) {
-                    $rootScope.$apply(function() { trackEnd.publish(song); });
-                });
-                DZ.Event.subscribe('current_track',function(song) {
-                    $rootScope.$apply(function() { trackChanged.publish(song.track); });
+                DZ.Event.subscribe('track_end', function() {
+                    $rootScope.$apply(function() {
+                        Util.log('Ending');
+
+                        cuedSongCode = null;
+                        songEnd.publish();
+                    });
                 });
                 DZ.Event.subscribe('player_position', function(pos) {
                     if (!pos[1]) { return; }
 
                     if (pos[0] || pos[0] === 0) {
-                        $rootScope.$apply(function() { playerPosition.publish(pos[0] / pos[1]); });
+                        $rootScope.$apply(function() {
+                            songPosition.publish(pos[0] / pos[1]);
+                        });
                     }
                 });
             }
         }
     });
 
-    function pausePlay() {
-        if (shouldPlay && hasContent) {
-            DZ.player.play();
-        }
-        else {
-            DZ.player.pause();
-        }
-    }
+    songStart.subscribe(function() { Util.log('Starting: '+cuedSongCode); })
 
-    var service = {
-        subscribeToTrackEnd: trackEnd.subscribe,
+    var service = Object.freeze({
 
-        subscribeToPlayerPosition: playerPosition.subscribe,
+        onStart: songStart.subscribe,
 
-        pause: function() {
-            shouldPlay = false;
-            pausePlay();
+        onEnd: songEnd.subscribe,
+
+        onPosition: songPosition.subscribe,
+
+        allowPlay: function(v) {
+            shouldPlay = v;
+
+            if (shouldPlay && cuedSongCode !== null) {
+                if (pendingStart) {
+                    songStart.publish();
+                    pendingStart = false;
+                }
+                DZ.player.play();
+            }
+            else { DZ.player.pause(); }
         },
 
-        play: function() {
-            shouldPlay = true;
-            pausePlay();
-        },
+        cueSong: function(songCode) {
+            cuedSongCode = Convert.toIntLax(songCode);
+            DZ.player.playTracks([cuedSongCode], shouldPlay && cuedSongCode !== null);
 
-        queueSong: function(songCode) {
-            DZ.player.playTracks([songCode]);
-
-            if (songCode || songCode === 0) {
-                hasContent = true;
-                radioIsQueued = false;
+            if(cuedSongCode === null) {
+                pendingStart = false;
+                DZ.player.pause();
             }
             else {
-                hasContent = false;
+                if (shouldPlay) {
+                    songStart.publish();
+                    pendingStart = false;
+                }
+                else if (!shouldPlay) {
+                    pendingStart = true;
+                    DZ.player.pause();
+                }
             }
 
-            pausePlay();
         },
 
-        queueStation: function(stationCode) { 
-            DZ.player.playRadio(getRadioStation(stationCode));
-            radioIsQueued = true;
-            hasContent = true;
-            pausePlay();
+        cuedSongCode: function() {
+            return cuedSongCode;
         },
-
-        nowPlayingCode: function() {
-            var track = DZ.player.getCurrentTrack()
-            return (!track) ? null : track.id;
-        },
-
-        radioIsQueued: function() { return radioIsQueued; },
 
         availableGenres: Object.freeze({
             'None': null,
@@ -431,7 +441,7 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
             'Folk': 6,
             'Electronic': 7
         })
-    };
+    });
 
     return service;
 });

@@ -7,8 +7,8 @@ partyShark.config(function($routeProvider) {
             controller  : 'NavController'
         })
 
-        .when('/joinParty', {
-            templateUrl : 'views/joinParty.html',
+        .when('/join-party', {
+            templateUrl : 'views/join-party.html',
             controller  : 'joinPartyController'
         })
 
@@ -17,8 +17,8 @@ partyShark.config(function($routeProvider) {
             controller  : 'optionsController'
         })
 
-        .when('/startParty', {
-            templateUrl : 'views/startParty.html',
+        .when('/start-party', {
+            templateUrl : 'views/start-party.html',
             controller  : 'startPartyController'
         })
 

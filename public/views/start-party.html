@@ -12,12 +12,12 @@
                 <form>
                   <div class="form-group">
                     <label for="numParticipants">Maximum Number of Participants:</label>
-                    <input ng-model="numParticipants" type="number" class="form-control" id="numParticipants" placeholder="Participants" min="1"/>
+                    <input ng-model="tempModel.user_cap" type="number" class="form-control" id="numParticipants" placeholder="Participants" min="1"/>
                   </div>
 
                   <div class="form-group">
                     <label for="maxQueue">Maximum Size of the Dock:</label>
-                    <input ng-model="maxQueue" type="number" class="form-control" id="maxQueue" placeholder="Dock" min="1" />
+                    <input ng-model="tempModel.playthrough_cap" type="number" class="form-control" id="maxQueue" placeholder="Dock" min="1" />
                   </div>
 
                   <div class="form-group">

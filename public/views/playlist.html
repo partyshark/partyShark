@@ -26,9 +26,8 @@
                                     <h3 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h3>
                                     <h4>{{playthrough.song.album}}</h4>
                                     <h4>{{playthrough.song.duration * playthrough.completed_ratio | date:'mm:ss'}} / {{playthrough.song.duration | date:'mm:ss'}}</h4>
-
+                                    <h4>{{playthrough.suggester}}</h4>
                                     <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
-                                    <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
                             </div>
 
@@ -40,7 +39,7 @@
 
                             <br>
                             <div class="progress">
-                              <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{playthrough.completed_ratio}}" aria-valuemin="0" aria-valuemax="1" style="width:{{playthrough.completed_ratio * 100}}%">
+                                <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{playthrough.completed_ratio}}" aria-valuemin="0" aria-valuemax="1" style="width:{{playthrough.completed_ratio * 100}}%;">
                               </div>
                             </div>
 
@@ -61,9 +60,8 @@
                                     <h4 class='media-heading'>{{playthrough.song.title}} - {{playthrough.song.artist}}</h4>
                                     <h5>{{playthrough.song.album}}</h5>
                                     <h5>{{playthrough.song.duration | date:'mm:ss'}}</h5>
-
+                                    <h5>{{playthrough.suggester}}</h5>
                                     <button ng-show="user.is_admin" class="btn btn-default" ng-click="veto(playthrough.code);">Veto</button>
-                                    <h5>Suggested by {{playthrough.suggester}}</h5>
                                 </div>
                             </div>
 

@@ -1,63 +1,60 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
 controllersModule.controller('MainController', function($scope, $q, $interval, $rootScope, PartyService, UserService, PlayerService, OptionsService, NetService, SoundsService, PlaylistService) {
-    PlayerService.subscribeToTrackEnd(updatePlayer);
-    PartyService.subscribeToUpdate(updatePlayer);
-    PlaylistService.subscribeToUpdate(updatePlayer);
-
-    var lastPush = Date.now();
-    PlayerService.subscribeToPlayerPosition(function(pos) {
-        var top = PlaylistService.top();
-        if (Date.now() - lastPush > 1500 && top) {
-            lastPush = Date.now();
-            NetService.updatePlaythrough(top.code, {completed_ratio: pos});
-        }
-    });
-
-    function updatePlayer() {
-        if (!UserService.isPlayer() || !PartyService.is_playing) {
-            PlayerService.pause();
-        }
-        else {
-            PlayerService.play();
-        }
-
-        //Check to make sure current playing is still at pos 0
-        var nowPlaying = PlaylistService.top();
-        if(nowPlaying) {
-            if(nowPlaying.song_code != PlayerService.nowPlayingCode()) {
-                PlayerService.queueSong(nowPlaying.song_code);
-                Util.log('queued track');
-            }
-        }
-        else if(OptionsService.default_genre !== null) {
-            if(!PlayerService.radioIsQueued()) {
-                PlayerService.queueStation(OptionsService.default_genre);
-                Util.log('queued radio');
-             }
-        }
-        else {
-            PlayerService.queueSong(null);
-        }
-    }
-
-    PlayerService.subscribeToTrackEnd(function() {
-        if (OptionsService.vitrual_dj) {
-            SoundsService.playRapHorn();
-        }
-        var top = PlaylistService.top()
-        if (top) {
-            NetService.updatePlaythrough(top.code, {completed_ratio: 1.1});
-        }
-    });
-
     $scope.user = UserService;
     $scope.party = PartyService;
+    $scope.playlist = PlaylistService;
+
+    var playerReg;
+    var lastPush = Date.now();
+    $scope.$watch('user.isPlayer()', function(cur, old) {
+        if (cur && !old) {
+
+            PlayerService.allowPlay(PartyService.is_playing);
+
+            playerReg = {
+                cue: $scope.$watch('playlist.top()', function(cur, old) {
+                    var code = (cur) ? cur.song_code : null;
+                    PlayerService.cueSong(code);
+                }),
+
+                end: PlayerService.onEnd(function() {
+                    var top = PlaylistService.top()
+                    if (top) {
+                        NetService.updatePlaythrough(top.code, {completed_ratio: 1.1});
+                    }
+                }),
+
+                start: PlayerService.onStart(function() {
+                    if(OptionsService.virtual_dj) {
+                       SoundsService.playRapHorn();
+                    }
+                }),
+
+                pos: PlayerService.onPosition(function(pos) {
+                    var top = PlaylistService.top();
+                    if (Date.now() - lastPush > 1500 && top && pos > top.completed_ratio) {
+                        lastPush = Date.now();
+                        NetService.updatePlaythrough(top.code, {completed_ratio: pos});
+                    }
+                })
+            };
+        }
+        else if (playerReg) {
+            playerReg.cue();
+            playerReg.end.cancel();
+            playerReg.start.cancel();
+            playerReg.pos.cancel();
+            playerReg = null;
+        }
+    });
+
+    $scope.$watch('party.is_playing', function(cur, old) {
+        PlayerService.allowPlay(cur && UserService.isPlayer());
+    });
 });
 
-controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, PartyService, NetService, PlayerService, UserService, OptionsService) {
-    $scope.displayName = "Ahoy, " + PartyService.username + "!";
-
+controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, PlaylistService, PartyService, NetService, PlayerService, UserService, OptionsService) {
     $scope.dock = function() {
         $location.path('/'+PartyService.code+'/playlist');
     }
@@ -72,6 +69,7 @@ controllersModule.controller('NavController', function($scope, $interval, $windo
             UserService.applyUpdate(null);
             PartyService.applyUpdate(null);
             OptionsService.applyUpdate(null);
+            PlaylistService.applyUpdate(null);
 
             $location.path('/');
             $.notify("Left party sucessfully!", "success");
@@ -231,7 +229,6 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     $scope.promoteUser = function() {
         if (UserService.is_admin) { return; }
 
-        var update = {admin_code: Convert.toNumberLax($scope.tempModel.is_admin)}
         NetService.updateSelf(update).then(
             function(self) {
                 UserService.applyUpdate(self);
@@ -260,6 +257,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 
         var poll;
         function pollRequest(transCode) {
+            debugger;
             NetService.getPlayerTransferRequest(transCode).then(
                 function(trans) {
                     if(trans.status == 1) {
@@ -268,7 +266,6 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
                             function(response) {
                                 if (response.player == UserService.username) {
                                     PartyService.applyUpdate(response);
-                                    $location.path('/'+PartyService.code+'/playlist');
                                     $.notify("You have been approved for player", "success");
                                 }
                             },
