@@ -478,10 +478,13 @@ footer .footer-below {
 }
 
 .results {
-    height: 300px !important;
+    max-height: 300px !important;
     padding: 10px 0 10px 10px;
     overflow-y: scroll;
     overflow-x: hidden;
+}
+.results td {
+    cursor: pointer;
 }
 
 .song {

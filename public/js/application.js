@@ -31,4 +31,8 @@ partyShark.config(function($routeProvider) {
             templateUrl : 'views/search.html',
             controller  : 'searchController'
         })
+
+        .otherwise({
+            redirectTo: '/'
+        })
 });

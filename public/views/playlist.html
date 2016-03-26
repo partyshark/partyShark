@@ -1,15 +1,15 @@
 
     <body class="index">
-        <div ng-show="playlist.length == 0">
+        <div ng-hide="playlist.top()">
             <section>
                 <div class="row" style="height:400px;overflow:auto;">
                     <div class="container">
-                        <center><h3>Playlist is empty! Add songs to the playlist by <a href="">searching.</a></h3></center>
+                        <center><h3>Playlist is empty! Add songs to the playlist by <a ng-href="#/{{party.code}}/search">searching.</a></h3></center>
                     </div>
                 </div>
             </section>
         </div>
-        <div class="container" ng-hide="emptyPlaylist" fetch-playlist>
+        <div class="container" ng-show="playlist.top()">
             <section>
                 <div class="row">
 

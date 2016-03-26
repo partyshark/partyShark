@@ -26,6 +26,8 @@ servicesModule.service('UserService', function(PartyService) {
 
         isPlayer: function() { return (this.username !== null) && (this.username == PartyService.player); },
 
+        isDefined: function() { return this.code !== null; },
+
         applyUpdate: function(update) {
             if (!update) { update = {code: null, is_admin: null, username: null}; }
             Util.applyUpdate(this, update);
@@ -53,14 +55,14 @@ servicesModule.service('OptionsService', function() {
 
 servicesModule.service('SongCacheService', function() {
     var _cache = { };
-    return {
+    return Object.freeze({
         getSong: function(songCode) {
            return _cache[songCode];
         },
-       addSong: function(song) {
+        addSong: function(song) {
            _cache[song.code] = song;
-       }
-    };
+        }
+    });
 });
 
 servicesModule.service('PlaylistService', function() {
@@ -493,7 +495,7 @@ servicesModule.service('PollingService', function($interval, $q, NetService, Par
 
     // Pull in data
     $interval(function() {
-        if(PartyService.isActive() && !pullPaused) {
+        if(PartyService.isActive() && UserService.isDefined() && !pullPaused) {
             NetService.getParty().then(function(partyUpdate) {
                 PartyService.applyUpdate(partyUpdate);
             });

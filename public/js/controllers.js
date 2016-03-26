@@ -1,6 +1,6 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('MainController', function($scope, $q, $interval, $rootScope, PartyService, UserService, PlayerService, OptionsService, NetService, SoundsService, PlaylistService) {
+controllersModule.controller('MainController', function($scope, $location, PartyService, UserService, PlayerService, OptionsService, NetService, SoundsService, PlaylistService) {
     $scope.user = UserService;
     $scope.party = PartyService;
     $scope.playlist = PlaylistService;
@@ -58,6 +58,19 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
     $scope.$watch('party.is_playing', function(cur, old) {
         PlayerService.allowPlay(cur && UserService.isPlayer());
     });
+
+    $scope.redirectToJoin = function() {
+        if (PartyService.code === null) {
+            PartyService.code = Convert.toIntLax($location.path().split('/')[1]);
+        }
+
+        if (UserService.code === null) {
+            $location.path('/join-party');
+            return true;
+        }
+
+        return false;
+    }
 });
 
 controllersModule.controller('ModalController', function($scope, NetService, TransferService) {
@@ -249,6 +262,8 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
 });
 
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, PartyService, OptionsService, NetService, PlaylistService, PlayerService, UserService) {
+    if ($scope.redirectToJoin()) { return; }
+
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
 
     $scope.tempModel = {
@@ -344,6 +359,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 });
 
 controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, UserService, PlaylistService, PartyService, OptionsService, NetService, PlayerService, PollingService) {
+    if ($scope.redirectToJoin()) { return; }
+
 	$rootScope.topButtons = ["dock", "search", "options", "exit"];
 
     var usersRequestingPlayerIgnoredCodes = [];
@@ -355,7 +372,8 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
             vote = null;
             playthrough.vote = null;
         }
-        
+                    debugger;
+
         NetService.updatePlaythrough(playthrough.code, {vote: vote}).then(
             function(playUpdate) {
                 $.notify("Vote was added!", "success");
@@ -400,8 +418,9 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
     });
 });
 
-
 controllersModule.controller('searchController', function($scope, $location, $rootScope, PartyService, PlaylistService, NetService) {
+    if ($scope.redirectToJoin()) { return; }
+
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
 
     $scope.submitSearch = function() {

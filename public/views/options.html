@@ -22,7 +22,7 @@
 
                   <div class="form-group">
                     <label for="veto_ratio">Fraction of Users Who Must Downvote to Skip:</label>
-                    <input ng-model="tempModel.veto_ratio" type="number" class="form-control" id="veto_ratio" placeholder="Veto Ratio" min="0" max="1" />
+                    <input ng-model="tempModel.veto_ratio" type="number" class="form-control" id="veto_ratio" placeholder="Veto Ratio" min="0" max="1" ng-disabled="!user.is_admin"/>
                   </div>
 
                   <div class="form-group">
