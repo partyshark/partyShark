@@ -78,8 +78,8 @@ Convert = Object.freeze({
         return k;
     },
     toBoolLax: function(v) {
-        var k = Convert.toNumberLax(v);
-        return (k === null) ? null : !!k;
+        if (v === undefined || v === null || isNaN(v)) { return null; }
+        else { return !!v; }
     },
     toBoolStrict: function(v) {
         return !!v;
