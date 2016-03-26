@@ -4,7 +4,7 @@ partyShark.config(function($routeProvider) {
     $routeProvider
         .when('/', {
             templateUrl : 'views/home.html',
-            controller  : 'NavController'
+            controller  : 'HomeController'
         })
 
         .when('/join-party', {

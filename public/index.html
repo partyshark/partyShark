@@ -61,7 +61,26 @@
 
 <body class="index" init-notifications ng-controller="MainController">
 
+
     <div ng-controller="ModalController">
+
+        <div class="modal fade" id="acceptTransferModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="model" ng-click="ignoreTransfer()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Player Transfer Request</h4>
+                    </div>
+                    <div class="modal-body">
+                        User {{activeTrans.requester}} has requested to be the player
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="ignoreTransfer()">Ignore</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="acceptTransfer()">Accept</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -94,26 +113,9 @@
         </div>
     </nav>
 
-    <div ng-show="isPlayingRadio">
-        <section>
-            <div id="dz-root"></div>
-            <div class="row">
-                <div class="col-lg-2"></div>
-                <div class="col-lg-8">
-                    <div class="media">
-                        <div class='media-left'>
-                        </div>
-                        <div class="media-body">
-                            <h1>Playing Radio</h1>
-                            <h2>{{trackTitle}} - {{trackArtist}}</h2>
-                        </div>
-                    </div>   
-                </div>
-                <div class="col-lg-2"></div>
-            </div>
-        </section>
-    </div>
+
     <div ng-view></div>
+
     <footer class="text-center">
         <div class="footer-below">
             <div class="container">
@@ -125,5 +127,7 @@
             </div>
         </div>
     </footer>
+
+    <div id="dz-root" style="display: none"></div>
 </body>
 </html>

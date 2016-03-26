@@ -78,7 +78,7 @@ Convert = Object.freeze({
         return k;
     },
     toBoolLax: function(v) {
-        var k = Convert.toNumberLaz(v);
+        var k = Convert.toNumberLax(v);
         return (k === null) ? null : !!k;
     },
     toBoolStrict: function(v) {

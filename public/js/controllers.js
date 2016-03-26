@@ -11,41 +11,46 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
         if (cur && !old) {
             PlayerService.allowPlay(PartyService.is_playing);
 
+            var cue = $scope.$watch('playlist.top()', function(cur, old) {
+                if (!cur) { PlayerService.cueSong(null); }
+                else {
+                    var song = cur.song || { };
+                    var dur = song.duration || 0;
+                    PlayerService.cueSong(cur.song_code, cur.completed_ratio * dur / 1000)
+                }
+            });
+            var end = PlayerService.onEnd(function() {
+                var top = PlaylistService.top()
+                if (top) {
+                    NetService.updatePlaythrough(top.code, {completed_ratio: 1.1});
+                }
+            });
+            var start = PlayerService.onStart(function() {
+                if(OptionsService.virtual_dj) {
+                   SoundsService.playRapHorn();
+                }
+            });
+            var pos = PlayerService.onPosition(function(pos) {
+                var top = PlaylistService.top();
+                if (Date.now() - lastPush > 1500 && top && pos > top.completed_ratio) {
+                    lastPush = Date.now();
+                    NetService.updatePlaythrough(top.code, {completed_ratio: pos});
+                }
+            });
+
+            if (playerReg) { playerReg.cancel(); }
             playerReg = {
-                cue: $scope.$watch('playlist.top()', function(cur, old) {
-                    var code = (cur) ? cur.song_code : null;
-                    PlayerService.cueSong(code);
-                }),
-
-                end: PlayerService.onEnd(function() {
-                    var top = PlaylistService.top()
-                    if (top) {
-                        NetService.updatePlaythrough(top.code, {completed_ratio: 1.1});
-                    }
-                }),
-
-                start: PlayerService.onStart(function() {
-                    if(OptionsService.virtual_dj) {
-                       SoundsService.playRapHorn();
-                    }
-                }),
-
-                pos: PlayerService.onPosition(function(pos) {
-                    var top = PlaylistService.top();
-                    if (Date.now() - lastPush > 1500 && top && pos > top.completed_ratio) {
-                        lastPush = Date.now();
-                        NetService.updatePlaythrough(top.code, {completed_ratio: pos});
-                    }
-                })
+                cancel: function() {
+                    cue();
+                    end.cancel();
+                    start.cancel();
+                    pos.cancel();
+               }
             };
         }
         else if (playerReg) {
             PlayerService.allowPlay(false);
-
-            playerReg.cue();
-            playerReg.end.cancel();
-            playerReg.start.cancel();
-            playerReg.pos.cancel();
+            playerReg.cancel();
             playerReg = null;
         }
     });
@@ -58,21 +63,39 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
 controllersModule.controller('ModalController', function($scope, NetService, TransferService) {
     $scope.transfers = TransferService.unmarked;
 
+    var stack = [], modalActive = false;
+
     $scope.$watchCollection('transfers', function(cur) {
         if(!cur) { return; }
 
         for(var prop in cur) {
             var trans = cur[prop];
-            if (!trans) { return; }
-
-            TransferService.mark(trans);
-            if (confirm(trans.requester+' would like to be player.')) {
-                NetService.approvePlayerTransfer(trans.code);
-            }
-
-            break;
+            if (trans) { stack.push(trans); }
         }
+
+        fireModal();
     });
+
+    function fireModal() {
+        if (modalActive) { return; }
+
+        $scope.activeTrans = stack.pop();
+        if (!$scope.activeTrans) { return; }
+
+        TransferService.mark($scope.activeTrans);
+        $('#acceptTransferModal').modal('show');
+        modalActive = true;
+    }
+
+    $scope.acceptTransfer = function() {
+        modalActive = false;
+        NetService.acceptPlayerTransferRequest($scope.activeTrans.code);
+        fireModal();
+    }
+
+    $scope.ignoreTransfer = function() {
+        modalActive = false;
+    }
 })
 
 controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, PlaylistService, PartyService, NetService, PlayerService, UserService, OptionsService) {
@@ -126,6 +149,11 @@ controllersModule.controller('NavController', function($scope, $interval, $windo
     }
 });
 
+controllersModule.controller('HomeController', function($scope, $rootScope) {
+    $rootScope.topButtons = [];
+
+})
+
 controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, NetService, PartyService, UserService) {
     $.notify("PartyShark uses a ton of data, please use on Wi-Fi.", "info");
 
@@ -171,7 +199,8 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
         playthrough_cap: OptionsService.playthrough_cap,
         virtual_dj: OptionsService.virtual_dj,
         admin_code: PartyService.admin_code,
-        default_genre: OptionsService.default_genre
+        default_genre: OptionsService.default_genre,
+        veto_ratio: OptionsService.veto_ratio
     };
 
     $scope.startParty = function() {
@@ -227,7 +256,8 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
         playthrough_cap: OptionsService.playthrough_cap,
         virtual_dj: OptionsService.virtual_dj,
         admin_code: PartyService.admin_code,
-        default_genre: OptionsService.default_genre
+        default_genre: OptionsService.default_genre,
+        veto_ratio: OptionsService.veto_ratio
     };
 
     $scope.user = UserService;

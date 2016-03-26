@@ -156,7 +156,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         },
         updateParty: function(update) {
             var conversions = {
-                is_playing: Convert.toBoolStrict
+                is_playing: Convert.toBoolLax
             };
 
             var req = {
@@ -224,7 +224,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
                     return response.data;
                 });
 		},
-        approvePlayerTransfer: function(transferCode) {
+        acceptPlayerTransferRequest: function(transferCode) {
             var req = {
                  method: 'PUT',
                  url: serverAddress+'/parties/'+PartyService.code+'/playertransfers/'+transferCode,
@@ -268,7 +268,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         },
 		updatePlaythrough: function(playthroughCode, update) {
             var conversions = {
-                completed_ratio: Convert.toNumberStrict,
+                completed_ratio: Convert.toNumberLax,
                 vote: Convert.toIntLax
             };
 
@@ -289,8 +289,8 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
             var conversions = {
                 playthrough_cap: Convert.toIntLax,
                 user_cap: Convert.toIntLax,
-                virtual_dj: Convert.toBoolStrict,
-                veto_ratio: Convert.toNumberStrict
+                virtual_dj: Convert.toBoolLax,
+                veto_ratio: Convert.toNumberLax
             };
 
 			var req = {
@@ -369,12 +369,12 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
 
     // Init player (should be deferred)
     DZ.init({
-        appId  : '174261',
-        channelUrl : 'https://www.partyshark.tk/channel.html',
-        player : {
+        appId: '174261',
+        channelUrl: 'https://www.partyshark.tk/channel.html',
+        player: {
             onload : function() {
                 $.notify("Player is initialized.", "success");
-                DZ.player.playTracks([null]);
+                DZ.player.playTracks([null], false);
 
                 DZ.Event.subscribe('track_end', function() {
                     $rootScope.$apply(function() {
@@ -420,9 +420,9 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
             else { DZ.player.pause(); }
         },
 
-        cueSong: function(songCode) {
+        cueSong: function(songCode, time) {
             cuedSongCode = Convert.toIntLax(songCode);
-            DZ.player.playTracks([cuedSongCode], shouldPlay && cuedSongCode !== null);
+            DZ.player.playTracks([cuedSongCode], shouldPlay && cuedSongCode !== null, 0, time);
 
             if(cuedSongCode === null) {
                 pendingStart = false;
