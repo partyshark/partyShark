@@ -9,7 +9,6 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
     var lastPush = Date.now();
     $scope.$watch('user.isPlayer()', function(cur, old) {
         if (cur && !old) {
-
             PlayerService.allowPlay(PartyService.is_playing);
 
             playerReg = {
@@ -41,6 +40,8 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
             };
         }
         else if (playerReg) {
+            PlayerService.allowPlay(false);
+
             playerReg.cue();
             playerReg.end.cancel();
             playerReg.start.cancel();
@@ -53,6 +54,26 @@ controllersModule.controller('MainController', function($scope, $q, $interval, $
         PlayerService.allowPlay(cur && UserService.isPlayer());
     });
 });
+
+controllersModule.controller('ModalController', function($scope, NetService, TransferService) {
+    $scope.transfers = TransferService.unmarked;
+
+    $scope.$watchCollection('transfers', function(cur) {
+        if(!cur) { return; }
+
+        for(var prop in cur) {
+            var trans = cur[prop];
+            if (!trans) { return; }
+
+            TransferService.mark(trans);
+            if (confirm(trans.requester+' would like to be player.')) {
+                NetService.approvePlayerTransfer(trans.code);
+            }
+
+            break;
+        }
+    });
+})
 
 controllersModule.controller('NavController', function($scope, $interval, $window, $route, $location, $rootScope, $route, PlaylistService, PartyService, NetService, PlayerService, UserService, OptionsService) {
     $scope.dock = function() {
@@ -248,48 +269,47 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     };
 
     $scope.requestPlayer = function() {
-        if(PartyService.player == UserService.username) {
+        if(UserService.isPlayer()) {
             $.notify("You are already the player.", "info");
             return;
         }
 
-        $.notify("You have requested to be the player, now pending acceptance.", "info");
-
-        var poll;
-        function pollRequest(transCode) {
-            debugger;
-            NetService.getPlayerTransferRequest(transCode).then(
-                function(trans) {
-                    if(trans.status == 1) {
-                        $interval.cancel(poll);
-                        NetService.getParty().then(
-                            function(response) {
-                                if (response.player == UserService.username) {
-                                    PartyService.applyUpdate(response);
-                                    $.notify("You have been approved for player", "success");
-                                }
-                            },
-                            function(error) { Util.log(error); }
-                        );
-                    }
-                },
-                function(error){
-                    $interval.cancel(poll);
-                    Util.log(error);
-                    $.notify("Player request timed out.", "error");
-                }
-            );
-        }
-
+        var poll, watch;
         NetService.createPlayerTransferRequest().then(
             function(trans) {
-                poll = $interval(pollRequest, 2000, 0, false, trans.code);
+                poll = $interval(pollRequest.bind(null, trans.code), 2000);
+                watch = $scope.$watch('user.isPlayer()', watchPlayer);
+                $.notify("You have requested to be the player, now pending acceptance.", "info");
             },
             function(error) {
                 Util.log(error);
                 $.notify("Could not request player.", "error");
             }
         );
+
+        function pollRequest(transCode) {
+            NetService.getPlayerTransferRequest(transCode).then(
+                function transSuccess(trans) {
+                    if(trans.status === 1) {
+                        $interval.cancel(poll);
+                        NetService.getParty().then(PartyService.applyUpdate);
+                    }
+                },
+                function(error){
+                    $interval.cancel(poll);
+                    watch();
+                    $.notify("Player request timed out.", "error");
+                }
+            );
+        }
+
+        function watchPlayer(cur, old) {
+            if (cur && !old) {
+                $interval.cancel(poll);
+                watch();
+                $.notify('You have become player.', 'success');
+            }
+        }
     }
 });
 

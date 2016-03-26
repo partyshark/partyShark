@@ -34,8 +34,6 @@ servicesModule.service('UserService', function(PartyService) {
 });
 
 servicesModule.service('OptionsService', function() {
-    var genreLabels = Object.freeze(['Classic Rock', '', '', 'Country', 'Top Hits']);
-
     var service = {
         user_cap: null,
         playthrough_cap: null,
@@ -49,12 +47,6 @@ servicesModule.service('OptionsService', function() {
             Util.applyUpdate(this, update);
         }
     };
-
-    function getGenreLabel() {
-        var dg = service.default_genre;
-        if(dg ==  null || dg < 0 || dg >= genreLabels.length) { return 'None'; }
-        else { return genreLabels[dg]; }
-    }
 
     return service;
 });
@@ -121,6 +113,29 @@ servicesModule.service('PlaylistService', function() {
 
     return service;
 });
+
+servicesModule.service('TransferService', function() {
+    var cache = { }, unmarked = { };
+
+    var service = Object.freeze({
+        addAll: function(transfers) {
+            if (!transfers) { return; }
+
+            transfers.forEach(function(trans) {
+                if (!cache[trans.code]) { unmarked[trans.code] = trans; }
+                cache[trans.code] = trans;
+            });
+        },
+
+        mark: function(transfer) {
+            delete unmarked[transfer.code];
+        },
+
+        unmarked: unmarked
+    });
+
+    return service;
+})
 
 servicesModule.service('NetService', function($http, $q, PartyService, UserService, SongCacheService) {
     var serverAddress = 'https://api.partyshark.tk';
@@ -200,13 +215,13 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         getPlayerTransferRequests: function() {
             return $http.get(serverAddress+'/parties/'+PartyService.code+'/playertransfers', {headers: {'x-user-code': UserService.code}})
                 .then(function(response) {
-                    return response.data;
+                    return Util.reviveDataset(response.data);
                 });
         },
 		createPlayerTransferRequest: function() {
             return $http.post(serverAddress+'/parties/'+PartyService.code+'/playertransfers', {}, {headers: {'x-user-code': UserService.code}})
                 .then(function(response) {
-                        return response.data;
+                    return response.data;
                 });
 		},
         approvePlayerTransfer: function(transferCode) {
@@ -472,7 +487,7 @@ servicesModule.service('SoundsService', function($interval) {
     return service;
 });
 
-servicesModule.service('PollingService', function($interval, $q, NetService, PartyService, PlayerService, PlaylistService, OptionsService, UserService) {
+servicesModule.service('PollingService', function($interval, $q, NetService, PartyService, PlayerService, PlaylistService, OptionsService, UserService, TransferService) {
 
     var pullPaused = false;
 
@@ -503,6 +518,12 @@ servicesModule.service('PollingService', function($interval, $q, NetService, Par
                     PlaylistService.applyUpdate(playlistUpdate);
                 })
             });
+
+            if (UserService.is_admin) {
+                NetService.getPlayerTransferRequests().then(function(transList) {
+                    TransferService.addAll(transList);
+                });
+            }
         }
     }, 3000);
 

@@ -528,7 +528,7 @@ i#downvotes{
 }
 
 .ps_album-art {
-    height: 150px;
+    height: 160px;
     vertical-align: top;
 }
 @media (max-width: 600px) {
