@@ -14,10 +14,10 @@
                 <div class="row">
 
                     <!-- First playthrough tile -->
-                    <div ng-repeat-start="playthrough in playlist | orderBy:'position':false" ng-if="$first">
+                    <div ng-repeat-start="playthrough in playlist" ng-if="$first">
                         <div class='well well-sm media song ps_now-playing' ng-model="playthrough.position">
                             <div class="media-left">
-                                <img class="ps_album-art media-left" ng-src='{{playthrough.song.art}}' alt=''>
+                                <img class="ps_album-art media-left" ng-src='{{playthrough.song.art}}' alt="Album Art Unavailable">
                             </div>
 
                             <div class='media-body ps_playthrough-text'>
@@ -47,11 +47,11 @@
                     </div>
 
                     <!-- Remaining playthrough tiles -->
-                    <div class="ps_compressor-h" ng-repeat-end="playthrough in playlist | orderBy:'position':false" ng-if="!$first">
+                    <div class="ps_compressor-h" ng-repeat-end="playthrough in playlist" ng-if="!$first">
                         <div class='well well-sm media' ng-model="playthrough.position">
 
                             <div class="media-left">
-                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt=''>
+                                <img class="ps_album-art" ng-src='{{playthrough.song.art}}' alt="Album Art Unavailable">
                             </div>
 
                             <div class='media-body ps_playthrough-text'>

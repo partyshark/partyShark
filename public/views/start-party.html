@@ -26,16 +26,16 @@
                   </div>
 
                   <div class="form-group">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" ng-model="tempModel.virtual_dj"/> <b>Virtual DJ</b> - Plays airhorn between song changes
-                        </label>
-                      </div>
+                      <label for="virtual_dj">
+                            <input id="virtual_dj" type="checkbox" ng-model="tempModel.virtual_dj"/> <b>Virtual DJ</b> - Plays airhorn between song changes
+                      </label>
                   </div>
 
                   <div class="form-group">
                     <label for="genreSelect">Default Radio Genre on Empty Playlist</label>
-                    <select id="genreSelect"class="form-control" ng-model="tempModel.default_genre" ng-options="enum as name for (name, enum) in genres"></select>
+                    <select id="genreSelect" class="form-control" ng-model="tempModel.default_genre" ng-options="name for (name, enum) in genres">
+                        <option value="" hidden></option>
+                    </select>
                   </div>
 
                   <br><br>

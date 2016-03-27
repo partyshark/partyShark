@@ -66,7 +66,7 @@ servicesModule.service('SongCacheService', function() {
 });
 
 servicesModule.service('PlaylistService', function() {
-    function posPred(a, b) { a.position - b.position; }
+    function posPred(a, b) { return a.position - b.position; }
 
     var service = [ ];
 
