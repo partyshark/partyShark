@@ -372,7 +372,6 @@ controllersModule.controller('playlistController', function($scope, $q, $route, 
             vote = null;
             playthrough.vote = null;
         }
-                    debugger;
 
         NetService.updatePlaythrough(playthrough.code, {vote: vote}).then(
             function(playUpdate) {
