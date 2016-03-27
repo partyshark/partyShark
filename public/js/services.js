@@ -308,9 +308,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
            var song = SongCacheService.getSong(songCode);
 
            if(song) {
-               var deferred = $q.defer();
-               deferred.resolve(song);
-               return deferred.promise;
+               return $q.when(song);
            }
            else {
                return $http.jsonp(
@@ -350,6 +348,12 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
 
                         return arr;
                     });
+        },
+        queryRadioStation: function(station) {
+            return $http.jsonp('https://api.deezer.com/radio/'+station+'/tracks?output=jsonp&callback=JSON_CALLBACK')
+                .then(function(response) {
+                    return response.data.data.map(function(item) { return item.id; });
+                });
         }
 	}
 });
@@ -357,8 +361,6 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
 servicesModule.service('PlayerService', function($rootScope, $interval, $q, PlaylistService, OptionsService, NetService, PartyService) {
 
     var cuedSongCode = null, shouldPlay = false, pendingStart = false;
-
-    var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
 
     var songStart = new Util.Publisher(), songEnd = new Util.Publisher(), songPosition = new Util.Publisher();
 
@@ -445,6 +447,35 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
 
         cuedSongCode: function() {
             return cuedSongCode;
+        }
+    });
+
+    return service;
+});
+
+servicesModule.service('SuggestionService', function($q, NetService) {
+
+    var stations = Object.freeze([37765, 30901, 31031, 36801, 31061, 30661, 37091, 30851]);
+    var cache = { };
+
+    var service = Object.freeze({
+        getSuggestion: function(genreCode) {
+            if (genreCode === null || genreCode === undefined || genreCode < 0 || genreCode > stations.length) {
+                return $q.reject(genreCode+' is not a valid genre identifier');
+            }
+
+            var genreCache = cache[genreCode]
+            if (genreCache && genreCache.index < genreCache.songs.length) {
+                return $q.when(genreCache.songs[genreCache.index++]);
+            }
+            else {
+                return NetService.queryRadioStation(stations[genreCode]).then(
+                    function(suggestions) {
+                        cache[genreCode] = {index: 1, songs: suggestions};
+                        return suggestions[0];
+                    }
+                );
+            }
         },
 
         availableGenres: Object.freeze({

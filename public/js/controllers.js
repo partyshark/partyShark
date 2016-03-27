@@ -1,6 +1,6 @@
 var controllersModule = angular.module('controllersModule',['servicesModule']);
 
-controllersModule.controller('MainController', function($scope, $location, PartyService, UserService, PlayerService, OptionsService, NetService, SoundsService, PlaylistService) {
+controllersModule.controller('MainController', function($scope, $location, PartyService, UserService, PlayerService, OptionsService, NetService, SoundsService, PlaylistService, SuggestionService) {
     $scope.user = UserService;
     $scope.party = PartyService;
     $scope.playlist = PlaylistService;
@@ -12,7 +12,20 @@ controllersModule.controller('MainController', function($scope, $location, Party
             PlayerService.allowPlay(PartyService.is_playing);
 
             var cue = $scope.$watch('playlist.top()', function(cur, old) {
-                if (!cur) { PlayerService.cueSong(null); }
+                if (!cur) {
+                    PlayerService.cueSong(null);
+
+                    if (OptionsService.default_genre !== null) {
+                        SuggestionService.getSuggestion(OptionsService.default_genre).then(
+                            function(songCode) {
+                                NetService.createPlaythrough(songCode);
+                            },
+                            function() {
+                                $.notify('Unable to suggest song from default genre.', 'error');
+                            }
+                        );
+                    }
+                }
                 else {
                     var song = cur.song || { };
                     var dur = song.duration || 0;
@@ -164,8 +177,7 @@ controllersModule.controller('NavController', function($scope, $interval, $windo
 
 controllersModule.controller('HomeController', function($scope, $rootScope) {
     $rootScope.topButtons = [];
-
-})
+});
 
 controllersModule.controller('joinPartyController', function($scope, $rootScope, $location, NetService, PartyService, UserService) {
     $.notify("PartyShark uses a ton of data, please use on Wi-Fi.", "info");
@@ -201,11 +213,11 @@ controllersModule.controller('joinPartyController', function($scope, $rootScope,
     }
 });
 
-controllersModule.controller('startPartyController', function($q, $scope, $rootScope, $location, PartyService, OptionsService, NetService, UserService, PollingService, PlayerService) {
+controllersModule.controller('startPartyController', function($q, $scope, $rootScope, $location, PartyService, OptionsService, NetService, UserService, PollingService, PlayerService, SuggestionService) {
     $.notify("PartyShark uses a ton of data, please use on wifi.", "info");
     $rootScope.topButtons = [];
 
-    $scope.genres = PlayerService.availableGenres;
+    $scope.genres = SuggestionService.availableGenres;
 
     $scope.tempModel = {
         user_cap: OptionsService.user_cap,
@@ -261,7 +273,7 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
     }
 });
 
-controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, PartyService, OptionsService, NetService, PlaylistService, PlayerService, UserService) {
+controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, PartyService, OptionsService, NetService, PlaylistService, PlayerService, UserService, SuggestionService) {
     if ($scope.redirectToJoin()) { return; }
 
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
@@ -277,7 +289,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
 
     $scope.user = UserService;
 
-    $scope.genres = PlayerService.availableGenres;
+    $scope.genres = SuggestionService.availableGenres;
 
     $scope.update = function() {;
         NetService.updatePartySettings($scope.tempModel).then(

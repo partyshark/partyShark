@@ -27,13 +27,13 @@
 
                     <div class="form-group">
                         <label for="virtual_dj">
-                            <input id="virtual_dj" type="checkbox" ng-model="tempModel.virtual_dj"/> <b>Virtual DJ</b> - Plays airhorn between song changes
+                            <input id="virtual_dj" type="checkbox" ng-model="tempModel.virtual_dj" ng-disabled="!user.is_admin"/> <b>Virtual DJ</b> - Plays airhorn between song changes
                         </label>
                     </div>
 
                     <div class="form-group">
                         <label for="genreSelect">Default Radio Genre on Empty Playlist</label>
-                        <select id="genreSelect" class="form-control" ng-model="tempModel.default_genre" ng-options="name for (name, enum) in genres">
+                        <select id="genreSelect" class="form-control" ng-disabled="!user.is_admin" ng-model="tempModel.default_genre" ng-options="name for (name, enum) in genres">
                             <option value="" hidden></option>
                         </select>
                     </div>
@@ -51,7 +51,7 @@
                         </div>
                     </div>
 
-                  <button ng-shpw="user.is_admin" class="btn btn-primary" type="button" ng-click="update();">Update Options</button>
+                  <button ng-show="user.is_admin" class="btn btn-primary" type="button" ng-click="update();">Update Options</button>
                   <button ng_hide="user.isPlayer()" class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
                 </form>
             </div>
