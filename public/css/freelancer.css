@@ -120,6 +120,10 @@ header .intro-text .skills {
     font-weight: 300;
 }
 
+.navbar-header {
+    position: relative;
+}
+
 @media(min-width:768px) {
     header .container {
         padding-top: 0px;
@@ -157,6 +161,16 @@ header .intro-text .skills {
     .navbar-fixed-top.navbar-shrink .navbar-brand {
         font-size: 1.5em;
     }
+}
+
+.navbar-brand {
+    position: absolute;
+    white-space: nowrap;
+    z-index: -1;
+}
+
+.navbar-toggle {
+    background-color: #fa6900;
 }
 
 .navbar {
@@ -363,7 +377,7 @@ footer h3 {
 
 footer .footer-above {
     padding-top: 50px;
-    background-color: #f38630;
+    background-color: #fa6900;
 }
 
 footer .footer-col {
