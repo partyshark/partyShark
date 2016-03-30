@@ -11,17 +11,20 @@
             <div class="col-lg-12">
                 <form>
                   <div class="form-group">
-                    <label for="numParticipants">Maximum Number of Participants:</label>
+                    <label for="numParticipants">Maximum Number of Participants:</label><br>
+                    <small>This is the maximum number of people allowed in the party at one time</small>
                     <input ng-model="tempModel.user_cap" type="number" class="form-control" id="numParticipants" placeholder="Participants" min="1"/>
                   </div>
 
                   <div class="form-group">
-                    <label for="maxQueue">Maximum Size of the Dock:</label>
+                    <label for="maxQueue">Maximum Size of the Dock:</label><br>
+                    <small>This is the maximum number of songs allowed in the playlist queue at one time</small>
                     <input ng-model="tempModel.playthrough_cap" type="number" class="form-control" id="maxQueue" placeholder="Dock" min="1" />
                   </div>
 
                   <div class="form-group">
-                    <label for="veto_ratio">Fraction of Users Who Must Downvote to Skip:</label>
+                    <label for="veto_ratio">Fraction of Users Who Must Downvote to Skip:</label><br>
+                    <small>This is the number of downvotes required on a song, relative to the number of people currently in the party, in order for the song to be removed from the queue</small>
                     <input ng-model="tempModel.veto_ratio" type="number" class="form-control" id="veto_ratio" placeholder="Veto Ratio" min="0" max="1" />
                   </div>
 
@@ -32,7 +35,8 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="genreSelect">Default Radio Genre on Empty Playlist</label>
+                    <label for="genreSelect">Default Radio Genre on Empty Playlist</label><br>
+                    <small>This selects the genre of songs to be automatically played in the case that there are no songs in the queue</small>
                     <select id="genreSelect" class="form-control" ng-model="tempModel.default_genre" ng-options="name for (name, enum) in genres">
                         <option value="" hidden></option>
                     </select>

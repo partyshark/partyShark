@@ -10,18 +10,23 @@
         <div class="row">
             <div class="col-lg-12">
                 <form>
+                    <small>Share this code with others to allow them to join the party</small><br>
+                  <h4 style="color:#fa6900;">Party Code: {{partyCode}}</h4>
                   <div class="form-group">
-                    <label for="numParticipants">Maximum Number of Participants:</label>
+                    <label for="numParticipants">Maximum Number of Participants:</label><br>
+                    <small>This is the maximum number of people allowed in the party at one time</small>
                     <input ng-model="tempModel.user_cap" type="number" class="form-control" id="numParticipants" placeholder="Participants" min="1" ng-disabled="!user.is_admin"/>
                   </div>
 
                   <div class="form-group">
-                    <label for="maxQueue">Maximum Size of the Dock:</label>
+                    <label for="maxQueue">Maximum Size of the Dock:</label><br>
+                    <small>This is the maximum number of songs allowed in the playlist queue at one time</small>
                     <input ng-model="tempModel.playthrough_cap" type="number" class="form-control" id="maxQueue" placeholder="Dock" min="1" ng-disabled="!user.is_admin"/>
                   </div>
 
                   <div class="form-group">
-                    <label for="veto_ratio">Fraction of Users Who Must Downvote to Skip:</label>
+                    <label for="veto_ratio">Fraction of Users Who Must Downvote to Skip:</label><br>
+                    <small>This is the number of downvotes required on a song, relative to the number of people currently in the party, in order for the song to be removed from the queue</small>
                     <input ng-model="tempModel.veto_ratio" type="number" class="form-control" id="veto_ratio" placeholder="Veto Ratio" min="0" max="1" ng-disabled="!user.is_admin"/>
                   </div>
 
@@ -32,13 +37,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="genreSelect">Default Radio Genre on Empty Playlist</label>
+                        <label for="genreSelect">Default Radio Genre on Empty Playlist</label><br>
+                        <small>This selects the genre of songs to be automatically played in the case that there are no songs in the queue</small>
                         <select id="genreSelect" class="form-control" ng-disabled="!user.is_admin" ng-model="tempModel.default_genre" ng-options="name for (name, enum) in genres">
                             <option value="" hidden></option>
                         </select>
                     </div>
-
-                    <div class="form-group">
+                    <div class="form-group" ng-show="user.is_admin">
+                        <label>Admin Code: </label> {{tempModel.admin_code}}<br>
+                        <small>Share this code with other users for them to be promoted to admin</small><br>
+                    </div>
+                    <div class="form-group" ng-hide="user.is_admin">
                         <label>
                             <b>Promote to Admin</b> - Enter the provided code to be promoted to admin
                         </label>
@@ -50,10 +59,13 @@
                             </span>
                         </div>
                     </div>
-
+                    <div class="form-group" ng-hide="user.isPlayer()">
+                        <label>Player Request</label><br>
+                        <small>Request to be the player, which means the music will play from your device</small><br>
+                        <button class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
+                    </div>
                   <button ng-show="user.is_admin" class="btn btn-primary" type="button" ng-click="update();">Update Options</button>
-                  <button ng-hide="user.isPlayer()" class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
-                  <button ng-show="user.isPlayer()" class="btn btn-primary" ng-click="loginPlayer();"><img class="img-responsive" src="res/Deezer.png" alt="" height="40" width = "90"/>Login</button>
+                  <button ng-show="user.isPlayer()" class="btn btn-primary" ng-click="loginPlayer();"><img class="img-responsive" src="res/poweredby.png" alt="" height="40" width = "90"/>Login</button>
 
                 </form>
             </div>
