@@ -52,7 +52,9 @@
                     </div>
 
                   <button ng-show="user.is_admin" class="btn btn-primary" type="button" ng-click="update();">Update Options</button>
-                  <button ng_hide="user.isPlayer()" class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
+                  <button ng-hide="user.isPlayer()" class="btn btn-primary" type="button" ng-click="requestPlayer();">Request to be the Player</button>
+                  <button ng-show="user.isPlayer()" class="btn btn-primary" ng-click="loginPlayer();"><img class="img-responsive" src="res/Deezer.png" alt="" height="40" width = "90"/>Login</button>
+
                 </form>
             </div>
         </div>

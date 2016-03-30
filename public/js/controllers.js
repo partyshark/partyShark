@@ -368,6 +368,17 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
             }
         }
     }
+
+    $scope.loginPlayer = function() {
+        PlayerService.login().then(
+            function() {
+                $.notify('Login successful. Full songs should now be available.', 'success')
+            },
+            function() {
+                $.notify('Login failed.', 'error')
+            }
+        );
+    }
 });
 
 controllersModule.controller('playlistController', function($scope, $q, $route, $interval, $routeParams, $location, $rootScope, UserService, PlaylistService, PartyService, OptionsService, NetService, PlayerService, PollingService) {

@@ -447,6 +447,23 @@ servicesModule.service('PlayerService', function($rootScope, $interval, $q, Play
 
         cuedSongCode: function() {
             return cuedSongCode;
+        },
+
+        login: function() {
+            var ret = $q.defer();
+
+            DZ.login(
+                function(response) {
+                    $rootScope.$apply(function() {
+                        Util.log(response);
+                        if (response.authResponse) { ret.resolve(true); }
+                        else { ret.reject(false); }
+                    });
+                },
+                {perms: 'basic_access'}
+            );
+
+            return ret.promise;
         }
     });
 
