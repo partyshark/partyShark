@@ -275,8 +275,6 @@ controllersModule.controller('startPartyController', function($q, $scope, $rootS
 
 controllersModule.controller('optionsController', function($scope, $rootScope, $interval, $routeParams, $location, PartyService, OptionsService, NetService, PlaylistService, PlayerService, UserService, SuggestionService) {
     if ($scope.redirectToJoin()) { return; }
-    
-    $scope.partyCode = PartyService.code;
 
     $rootScope.topButtons = ["dock", "search", "options", "exit"];
 
