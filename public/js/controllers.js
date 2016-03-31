@@ -287,8 +287,6 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
         veto_ratio: OptionsService.veto_ratio
     };
 
-    $scope.user = UserService;
-
     $scope.genres = SuggestionService.availableGenres;
 
     $scope.update = function() {;
@@ -307,7 +305,7 @@ controllersModule.controller('optionsController', function($scope, $rootScope, $
     $scope.promoteUser = function() {
         if (UserService.is_admin) { return; }
 
-        NetService.updateSelf(update).then(
+        NetService.updateSelf($scope.tempModel).then(
             function(self) {
                 UserService.applyUpdate(self);
                 if(self.is_admin) {
