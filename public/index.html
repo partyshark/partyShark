@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html ng-app="partyShark">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <meta property="og:image" content="https://partyshark.tk/public/res/fbpreview.png"/>
+    <meta property="og:url" content="https://partyshark.tk/"/>
+    <meta property="og:title" content="PartyShark"/>
+    
+    <!-- Every Favicon Ever -->
+    <link rel="apple-touch-icon" sizes="57x57" href="res/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="res/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="res/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="res/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="res/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="res/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="res/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="res/favicon-194x194.png" sizes="194x194">
+    <link rel="icon" type="image/png" href="res/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="res/android-chrome-192x192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="res/manifest.json">
+    <link rel="mask-icon" href="res/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="res/favicon.ico">
+    <meta name="msapplication-TileColor" content="#2d89ef">
+    <meta name="msapplication-TileImage" content="res/mstile-144x144.png">
+    <meta name="msapplication-config" content="res/browserconfig.xml">
+    <meta name="theme-color" content="#fa6900">
+
+    <title>PartyShark</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/freelancer.css" rel="stylesheet">
+    <link href="css/font-awesome.css" rel="stylesheet" type="text/css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+
+    <script src="libs/ion.sound.min.js"></script>
+    <script src="libs/notify.js"></script>
+    <script src="libs/swfobject.js"></script>
+
+    <script src="js/application.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/directives.js"></script>
+    <script src="js/util.js"></script>
+</head>
+
+<body class="index" init-notifications ng-controller="MainController">
+
+
+    <div ng-controller="ModalController">
+
+        <div class="modal fade" id="acceptTransferModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="model" ng-click="ignoreTransfer()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Player Transfer Request</h4>
+                    </div>
+                    <div class="modal-body">
+                        User {{activeTrans.requester}} has requested to be the player
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="ignoreTransfer()">Ignore</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="acceptTransfer()">Accept</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default" ng-controller="NavController">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <p class="navbar-brand">{{(user.username) ? 'Ahoy, '+user.username+'!' : 'PartyShark'}}</p>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="page-scroll">
+                        <a class="audiocontrol" ng-show="user.is_admin && !party.is_playing" ng-click="setPlaying(true);"><i class="fa fa-play fa-lg"></i></a>
+                        <a class="audiocontrol" ng-show="user.is_admin && party.is_playing" ng-click="setPlaying(false);"><i class="fa fa-pause fa-lg"></i></a>
+                    </li>
+                    <li class="page-scroll" ng-repeat="button in topButtons">
+                        <a ng-click="this[button]();">{{button}}</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <div ng-view class = "main-content"></div>
+
+    <footer class="text-center">
+        <div class="footer-below">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        Copyright &copy; PartyShark 2016
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="dz-root" style="display: none"></div>
+</body>
+</html>

@@ -1,1 +1,0 @@
-PartyShark.SearchRoute = Ember.Route.extend({});

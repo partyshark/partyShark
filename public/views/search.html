@@ -1,0 +1,43 @@
+<body class="index">
+    <section id="search">
+        <div class="container">
+
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>Search</h2>
+                    <hr class="star-primary">
+                    <form class="input-group" ngSubmit="submitSearch();">
+                        <input type="text" class="form-control" placeholder="Search for..." ng-model="searchParams">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" ng-click="submitSearch();">Go!</button>
+                        </span>
+                    </form>
+                </div>
+            </div>
+
+            <br><br>
+
+            <div class="results">
+                <div class="row">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Scheduled</th>
+                                <th>Title</th>
+                                <th>Artist</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="song in searchResults" ng-click="addSong(song.code, song.title, song.artist);">
+                                <td><i class="fa fa-check-circle ps_green" ng-show="isScheduled(song.code)"></i></td>
+                                <td>{{song.title}}</td>
+                                <td>{{song.artist}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</body>

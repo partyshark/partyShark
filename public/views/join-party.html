@@ -1,0 +1,28 @@
+<body class="index">
+    <!-- Access Codes -->
+    <section class="success" id="codes">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2>Join A Party</h2>
+                    <hr class="star-light">
+                    <p>Please enter the party code:</p>
+                    <div class="col-lg-6 col-lg-offset-3 text-center">
+                        <form ng-submit="joinParty();">
+                        <div class="input-group">
+                            <input type="text" class="form-control" ng-model="party.code">
+                            <span class="input-group-btn"> 
+                                <button class="btn btn-primary" type="button" ng-click="joinParty();">Join The Party!</button>
+                            </span>
+                        </div>
+                        </form>
+                        <span><br><span>
+                            <form>
+                                <button class="btn btn-primary" type="button" ng-click="backHome();">Go Back</button>
+                            <form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
