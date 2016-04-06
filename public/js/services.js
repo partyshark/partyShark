@@ -187,7 +187,7 @@ servicesModule.service('NetService', function($http, $q, PartyService, UserServi
         },
         updateSelf: function(update) {
             var conversions = {
-                admin_code: Convert.tooIntLax
+                admin_code: Convert.toIntLax
             };
 
             var req = {
